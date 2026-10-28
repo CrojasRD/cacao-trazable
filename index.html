@@ -282,16 +282,36 @@ document.getElementById("btnTema").onclick = ()=>{
 
 // ---------- Etapas de la cadena de valor ----------
 const ETAPAS = [
-  {id:"cultivo", nombre:"Cultivo", actor:"Agricultor / finca", campos:[["finca","Nombre de la finca"],["coord","Coordenadas GPS"],["altitud","Altitud (msnm)"],["hectareas","Hectáreas"],["certif","Certificaciones (orgánico, comercio justo…)"]]},
+  {id:"cultivo", nombre:"Cultivo", actor:"Agricultor / finca", campos:[["codProd","Código de productor (PRD-provincia-nº)"],["finca","Nombre de la finca"],["coord","Coordenadas GPS"],["altitud","Altitud (msnm)"],["hectareas","Hectáreas"],["certif","Certificaciones (orgánico, comercio justo…)"]]},
   {id:"cosecha", nombre:"Cosecha", actor:"Agricultor", campos:[["kg","Kg de cacao en baba"],["metodo","Método de cosecha"]]},
   {id:"fermentacion", nombre:"Fermentación", actor:"Responsable de beneficio", campos:[["dias","Días de fermentación"],["cajon","Tipo de cajón"],["temp","Temperatura máx. (°C)"]]},
   {id:"secado", nombre:"Secado", actor:"Responsable de beneficio", campos:[["dias","Días de secado"],["metodo","Método (solar, marquesina…)"],["humedad","Humedad final (%)"],["kg","Kg de cacao seco"]]},
-  {id:"compra", nombre:"Acopio y venta", actor:"Comprador / cooperativa", campos:[["vendedor","Vendedor"],["kg","Kg comprados"],["precio","Precio por kg (USD)"],["calidad","Calidad / prueba de corte"]]},
+  {id:"compra", nombre:"Acopio y venta", actor:"Comprador / cooperativa", campos:[["codCompra","Guía de compra (COM-año-nº)"],["vendedor","Vendedor"],["kg","Kg comprados"],["precio","Precio por kg (USD)"],["calidad","Calidad / prueba de corte"]]},
   {id:"transformacion", nombre:"Transformación", actor:"Planta procesadora", campos:[["proceso","Proceso (tostado, licor, nibs…)"],["producto","Producto resultante"],["kg","Kg resultantes"]]},
-  {id:"exportacion", nombre:"Exportación", actor:"Exportador", campos:[["puerto","Puerto de salida"],["destino","País y ciudad de destino"],["importador","Importador"],["dex","Declaración aduanera (DAE)"],["contenedor","Contenedor / guía"],["sacos","Número de sacos"],["kg","Kg exportados"]]},
-  {id:"llegada", nombre:"Llegada a destino", actor:"Importador", campos:[["puerto","Puerto de llegada"],["estado","Estado de la carga"],["kg","Kg recibidos"]]}
+  {id:"exportacion", nombre:"Exportación", actor:"Exportador", campos:[["puerto","Puerto de salida"],["destino","País y ciudad de destino"],["importador","Importador"],["dex","Declaración aduanera (DAE)"],["contenedor","Contenedor (ISO 6346, ej. MSCU 000014-1)"],["precinto","Precinto (sello)"],["sacos","Número de sacos"],["kg","Kg exportados"]]},
+  {id:"llegada", nombre:"Llegada a destino", actor:"Importador", campos:[["codRec","Código de recepción (REC-puerto-año-nº)"],["puerto","Puerto de llegada"],["estado","Estado de la carga"],["kg","Kg recibidos"]]}
 ];
 const etapa = id => ETAPAS.find(e=>e.id===id);
+
+// Código de saco: código del lote + S + número de saco (MAC-EC-2026-014-S03)
+const codigoSaco = (lote, s) => `${lote}-S${String(s).padStart(2,"0")}`;
+// Dígito de control de un contenedor según ISO 6346 (4 letras + 6 dígitos)
+function digitoISO6346(codigo){
+  const c = String(codigo).toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,10);
+  if(!/^[A-Z]{4}\d{6}$/.test(c)) return null;
+  const val = {}; let n = 10;
+  for(const ch of "ABCDEFGHIJKLMNOPQRSTUVWXYZ"){ if(n%11===0) n++; val[ch]=n++; }
+  let suma = 0;
+  for(let i=0;i<10;i++) suma += (/\d/.test(c[i]) ? +c[i] : val[c[i]]) * 2**i;
+  return suma % 11 % 10;
+}
+const contenedorISO = (dueño, serie) => { const base = dueño + String(serie).padStart(6,"0"); return `${dueño} ${base.slice(4)}-${digitoISO6346(base)}`; };
+// Comprueba si un número de contenedor escrito trae el dígito de control correcto
+function contenedorValido(txt){
+  const c = String(txt||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(!/^[A-Z]{4}\d{7}$/.test(c)) return null;
+  return digitoISO6346(c.slice(0,10)) === +c[10];
+}
 
 // ---------- Almacenamiento local ----------
 const KEY="cacao-trazable-v1";
@@ -392,14 +412,14 @@ async function crearLote014(){
   const l = db.lotes[codigo] = {codigo, variedad:"Nacional fino de aroma (Arriba)", kg:"1500", cadena:[]};
   // Datos de ejemplo (fincas y personas ficticias) para la demostración.
   const demo = [
-    ["cultivo","2026-03-02","Asociación de productores (ejemplo)","","Recinto San Juan, Vinces, Los Ríos",{finca:"Finca El Recreo",coord:"-1.552, -79.751",altitud:"25",hectareas:"6",certif:"Orgánico en transición"},"Cultivo agroforestal bajo sombra"],
+    ["cultivo","2026-03-02","Asociación de productores (ejemplo)","","Recinto San Juan, Vinces, Los Ríos",{codProd:"PRD-LR-0145",finca:"Finca El Recreo",coord:"-1.552, -79.751",altitud:"25",hectareas:"6",certif:"Orgánico en transición"},"Cultivo agroforestal bajo sombra"],
     ["cosecha","2026-08-10","Finca El Recreo","","Vinces, Los Ríos",{kg:"1500",metodo:"Manual, mazorcas maduras"},""],
     ["fermentacion","2026-08-11","Centro de acopio comunitario (ejemplo)","","Vinces, Los Ríos",{dias:"5",cajon:"Cajones de madera en escalera",temp:"47"},"Volteo cada 48 h"],
     ["secado","2026-08-16","Centro de acopio comunitario (ejemplo)","","Vinces, Los Ríos",{dias:"6",metodo:"Tendal solar",humedad:"7",kg:"560"},""],
-    ["compra","2026-08-28","MA&CAO Exportadora Agrícola","","Guayaquil, Guayas",{vendedor:"Finca El Recreo",kg:"560",precio:"3.10 USD",calidad:"Prueba de corte: 82 % bien fermentado"},"Pago al productor registrado"],
+    ["compra","2026-08-28","MA&CAO Exportadora Agrícola","","Guayaquil, Guayas",{codCompra:"COM-2026-0381",vendedor:"Finca El Recreo",kg:"560",precio:"3.10 USD",calidad:"Prueba de corte: 82 % bien fermentado"},"Pago al productor registrado"],
     ["transformacion","2026-09-05","MA&CAO · Planta de selección (ejemplo)","","Guayaquil, Guayas",{proceso:"Limpieza, clasificación y empaque en sacos de yute",producto:"Cacao en grano premium",kg:"550"},""],
-    ["exportacion","2026-09-20","MA&CAO Exportadora Agrícola","","Puerto de Guayaquil",{puerto:"Guayaquil",destino:"Hamburgo, Alemania",importador:"Importador europeo (ejemplo)",dex:"DAE-0000000",contenedor:"MSCU-0000000",sacos:"8",kg:"550"},""],
-    ["llegada","2026-10-14","Importador europeo (ejemplo)","","Hamburgo, Alemania",{puerto:"Hamburgo",estado:"Conforme, sin humedad",kg:"548"},""]
+    ["exportacion","2026-09-20","MA&CAO Exportadora Agrícola","","Puerto de Guayaquil",{puerto:"Guayaquil",destino:"Hamburgo, Alemania",importador:"Importador europeo (ejemplo)",dex:"DAE-0000014",contenedor:contenedorISO("MSCU",14),precinto:"PR-778812",sacos:"8",kg:"550"},""],
+    ["llegada","2026-10-14","Importador europeo (ejemplo)","","Hamburgo, Alemania",{codRec:"REC-HAM-2026-0142",puerto:"Hamburgo",estado:"Conforme, sin humedad",kg:"548"},""]
   ];
   for(const [et,fecha,actor,doc,lugar,datos,obs] of demo) await agregarBloque(l,{etapa:et,fecha,actor,doc,lugar,datos,obs});
 }
@@ -425,6 +445,8 @@ const EJEMPLOS = [
   {n:"012", finca:"Finca El Cisne", lugar:"Valencia, Los Ríos", coord:"-0.952, -79.353", alt:"110", ha:"6", variedad:"Nacional fino de aroma", baba:1400, certif:"Orgánico (UE)", destino:"Rotterdam, Países Bajos", llega:"Rotterdam", etapas:2, base:"2026-10-22"},
   {n:"013", finca:"Finca Primavera", lugar:"Pichincha, Manabí", coord:"-1.040, -79.817", alt:"95", ha:"7", variedad:"Nacional fino de aroma", baba:1300, destino:"Rotterdam, Países Bajos", llega:"Rotterdam", etapas:8, base:"2026-06-15", fechaMal:true}
 ];
+const PROV = {"Los Ríos":"LR","Guayas":"GY","Manabí":"MN","Esmeraldas":"ES","El Oro":"EO","Napo":"NA","Sucumbíos":"SU"};
+const PUERTO_COD = {"Ámsterdam":"AMS","Amberes":"ANR","Nueva York":"NYC","Hamburgo":"HAM","Barcelona":"BCN","Yokohama":"YOK","Génova":"GOA","Houston":"HOU","Rotterdam":"RTM"};
 const fechaMas = (base, dias) => { const t=new Date(base+"T12:00:00Z"); t.setUTCDate(t.getUTCDate()+dias); return t.toISOString().slice(0,10); };
 async function crearEjemplo(e){
   const codigo = "MAC-EC-2026-"+e.n;
@@ -438,7 +460,8 @@ async function crearEjemplo(e){
   const puerto = e.puerto || "Guayaquil";
   const imp = `Importadora de ${e.llega} (ejemplo)`;
   const f = d => fechaMas(e.base, d);
-  const datosCultivo = {finca:e.finca, altitud:e.alt, hectareas:e.ha};
+  const k = parseInt(e.n,10), prov = PROV[e.lugar.split(",").pop().trim()] || "XX";
+  const datosCultivo = {codProd:`PRD-${prov}-${String(100+k).padStart(4,"0")}`, finca:e.finca, altitud:e.alt, hectareas:e.ha};
   if(e.coord) datosCultivo.coord = e.coord;
   if(e.certif) datosCultivo.certif = e.certif;
   const pasos = [
@@ -446,14 +469,19 @@ async function crearEjemplo(e){
     ["cosecha", f(0), e.finca, canton, {kg:String(e.baba), metodo:"Manual, mazorcas maduras"}, ""],
     ["fermentacion", f(1), "Centro de acopio comunitario (ejemplo)", canton, {dias:ccn?"4":"5", cajon:"Cajones de madera en escalera", temp:"46"}, "Volteo cada 48 h"],
     ["secado", f(e.fechaMal ? -3 : 6), "Centro de acopio comunitario (ejemplo)", canton, {dias:"6", metodo:"Tendal solar", humedad:e.humedad||"7", kg:String(seco)}, e.nota||""],
-    ["compra", f(14), "MA&CAO Exportadora Agrícola", "Guayaquil, Guayas", {vendedor:e.finca, kg:String(seco), precio:precio+" USD", calidad:`Prueba de corte: ${corte} % bien fermentado`}, "Pago al productor registrado"],
+    ["compra", f(14), "MA&CAO Exportadora Agrícola", "Guayaquil, Guayas", {codCompra:`COM-2026-${String(300+k).padStart(4,"0")}`, vendedor:e.finca, kg:String(seco), precio:precio+" USD", calidad:`Prueba de corte: ${corte} % bien fermentado`}, "Pago al productor registrado"],
     ["transformacion", f(22), "MA&CAO · Planta de selección (ejemplo)", "Guayaquil, Guayas", {proceso:"Limpieza, clasificación y empaque en sacos de yute", producto:"Cacao en grano premium", kg:String(planta)}, ""],
-    ["exportacion", f(35), "MA&CAO Exportadora Agrícola", "Puerto de "+puerto, {puerto, destino:e.destino, importador:imp, dex:"DAE-00000"+e.n, contenedor:"MSCU-00000"+e.n, sacos:String(sacos), kg:String(planta)}, ""],
-    ["llegada", f(62), imp, e.destino, {puerto:e.llega, estado:e.perdida?"Sacos con daño por humedad en tránsito":"Conforme, sin humedad", kg:String(recibido)}, ""]
+    ["exportacion", f(35), "MA&CAO Exportadora Agrícola", "Puerto de "+puerto, {puerto, destino:e.destino, importador:imp, dex:"DAE-0000"+e.n, contenedor:contenedorISO("MSCU",k), precinto:"PR-7788"+e.n, sacos:String(sacos), kg:String(planta)}, ""],
+    ["llegada", f(62), imp, e.destino, {codRec:`REC-${PUERTO_COD[e.llega]||"XXX"}-2026-${String(100+k).padStart(4,"0")}`, puerto:e.llega, estado:e.perdida?"Sacos con daño por humedad en tránsito":"Conforme, sin humedad", kg:String(recibido)}, ""]
   ].slice(0, e.etapas);
   for(const [et,fecha,actor,lugar,datos,obs] of pasos) await agregarBloque(l,{etapa:et,fecha,actor,doc:"",lugar,datos,obs});
 }
+const VERSION_EJEMPLOS = 2;
 async function cargarEjemplos(){
+  if(db.ejemplosVer !== VERSION_EJEMPLOS){
+    for(let k=1;k<=14;k++) delete db.lotes["MAC-EC-2026-"+String(k).padStart(3,"0")];
+    db.ejemplosVer = VERSION_EJEMPLOS;
+  }
   for(const e of EJEMPLOS) if(!db.lotes["MAC-EC-2026-"+e.n]) await crearEjemplo(e);
 }
 
@@ -592,7 +620,7 @@ function pintarRol(l, ok){
   const d = id => (B(id)||{}).datos || {};
   document.querySelectorAll("#roles button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.rol===rol));
   const kgEx = num(d("exportacion").kg);
-  $("sacoInfo").innerHTML = saco ? `<div class="saco">Saco ${saco.s} de ${saco.n} · Lote ${esc(l.codigo)}${kgEx?` · ≈ ${(kgEx/saco.n).toFixed(1)} kg`:""} · ${ok?"Cadena verificada ✔":"⚠ Cadena alterada"}</div>` : "";
+  $("sacoInfo").innerHTML = saco ? `<div class="saco">Saco ${codigoSaco(esc(l.codigo),saco.s)} · ${saco.s} de ${saco.n}${kgEx?` · ≈ ${(kgEx/saco.n).toFixed(1)} kg`:""} · ${ok?"Cadena verificada ✔":"⚠ Cadena alterada"}</div>` : "";
   $("rolVista").innerHTML = rol==="control" ? vistaControl(l,ok,B,d) : rol==="productor" ? vistaProductor(l,B,d) : vistaComprador(l,B,d);
 }
 $("roles").addEventListener("click", e=>{
@@ -602,10 +630,11 @@ $("roles").addEventListener("click", e=>{
 function vistaComprador(l,B,d){
   const cu=B("cultivo")||{}, c=d("cultivo"), fe=d("fermentacion"), se=d("secado"), co=d("compra"), ex=B("exportacion")||{}, exd=d("exportacion"), ll=d("llegada");
   const ruta=[cu.lugar, B("compra")?.lugar, exd.puerto&&("Puerto de "+exd.puerto), exd.destino].filter(Boolean);
-  return `<h3 class="h3">Origen</h3>` + kv([["Finca",esc(c.finca)],["Ubicación",esc(cu.lugar)],["Coordenadas de la parcela",c.coord&&mapa(c.coord)],["Altitud",c.altitud&&esc(c.altitud)+" msnm"],["Superficie",c.hectareas&&esc(c.hectareas)+" ha"],["Certificaciones",esc(c.certif)]])
+  return `<h3 class="h3">Origen</h3>` + kv([["Finca",esc(c.finca)],["Código de productor",esc(c.codProd)],["Ubicación",esc(cu.lugar)],["Coordenadas de la parcela",c.coord&&mapa(c.coord)],["Altitud",c.altitud&&esc(c.altitud)+" msnm"],["Superficie",c.hectareas&&esc(c.hectareas)+" ha"],["Certificaciones",esc(c.certif)]])
     + `<h3 class="h3">Calidad</h3>` + kv([["Variedad",esc(l.variedad)],["Fermentación",fe.dias&&esc(fe.dias)+" días"],["Secado",se.metodo&&esc(se.metodo)],["Humedad final",se.humedad&&esc(se.humedad)+" %"],["Prueba de corte",esc(co.calidad)]])
     + `<h3 class="h3">Ruta</h3><div class="ruta">${ruta.map(x=>`<span class="p">${esc(x)}</span>`).join('<span aria-hidden="true">→</span>')}</div>`
-    + `<h3 class="h3">Exportación</h3>` + kv([["Exportador",esc(ex.actor)],["Fecha de embarque",esc(ex.fecha)],["Kg exportados",exd.kg&&esc(exd.kg)+" kg"],["Sacos",esc(exd.sacos)],["Contenedor",esc(exd.contenedor)],["Recibido en destino",ll.kg&&esc(ll.kg)+" kg · "+esc(ll.estado||"")]]);
+    + `<h3 class="h3">Exportación</h3>` + kv([["Exportador",esc(ex.actor)],["Fecha de embarque",esc(ex.fecha)],["Kg exportados",exd.kg&&esc(exd.kg)+" kg"],["Sacos",esc(exd.sacos)],["Contenedor",esc(exd.contenedor)],["Precinto",esc(exd.precinto)],["DAE",esc(exd.dex)]])
+    + `<h3 class="h3">Recepción</h3>` + kv([["Código de recepción",esc(ll.codRec)],["Recibido en destino",ll.kg&&esc(ll.kg)+" kg"],["Estado",esc(ll.estado)]]);
 }
 function vistaControl(l,ok,B,d){
   const checks=[], add=(estado,titulo,detalle)=>checks.push({estado,titulo,detalle});
@@ -628,10 +657,15 @@ function vistaControl(l,ok,B,d){
   const serie=[["cosecha",kc],["seco",ks],["comprado",kb],["procesado",kt],["exportado",ke],["recibido",kr]].filter(x=>x[1]!=null).map(x=>`${x[0]} ${x[1]}`).join(" → ");
   add(prob.length?"warn":"ok","Balance de kilos", (prob.length?"Revisar: "+prob.join("; ")+". ":"Sin diferencias fuera de lo normal. ")+serie+" kg.");
   const ex=d("exportacion");
-  add(ex.dex&&ex.contenedor?"ok":"warn","Documentos de exportación", `DAE: ${ex.dex||"no registrada"} · Contenedor: ${ex.contenedor||"no registrado"}.`);
+  const cv = contenedorValido(ex.contenedor);
+  const docsOk = ex.dex && ex.contenedor && ex.precinto && cv!==false;
+  add(docsOk?"ok":"warn","Documentos de exportación", `DAE: ${ex.dex||"no registrada"} · Contenedor: ${ex.contenedor||"no registrado"}${cv===true?" (dígito ISO 6346 correcto)":cv===false?" (dígito de control ISO 6346 incorrecto)":""} · Precinto: ${ex.precinto||"no registrado"}.`);
+  const cods = [["Productor",d("cultivo").codProd],["Compra",d("compra").codCompra],["Recepción",d("llegada").codRec]];
+  const faltanCod = cods.filter((x,i)=>!x[1] && B(["cultivo","compra","llegada"][i])).map(x=>x[0]);
+  add(faltanCod.length?"warn":"ok","Códigos de trazabilidad", cods.map(x=>`${x[0]}: ${x[1]||"—"}`).join(" · ") + (faltanCod.length?`. Falta el código de: ${faltanCod.join(", ")}.`:"."));
   if(saco){
     const n=num(ex.sacos), bien=n===saco.n && saco.s<=n;
-    add(bien?"ok":"warn","Saco escaneado", n?`Saco ${saco.s} de ${saco.n}; la exportación registra ${n} sacos.`:`Saco ${saco.s} de ${saco.n}; la exportación no registra el número de sacos.`);
+    add(bien?"ok":"warn","Saco escaneado", n?`${codigoSaco(l.codigo,saco.s)} (${saco.s} de ${saco.n}); la exportación registra ${n} sacos.`:`Saco ${saco.s} de ${saco.n}; la exportación no registra el número de sacos.`);
   }
   const ic={ok:"✔",warn:"!",ko:"✖"}, txt={ok:"Conforme",warn:"Revisar",ko:"No conforme"};
   const pend=checks.filter(x=>x.estado!=="ok").length;
@@ -647,7 +681,7 @@ function vistaProductor(l,B,d){
   const frase = ll ? `El cacao de <b>${finca}</b> llegó a <b>${esc(ex.destino||ll.lugar)}</b> el ${esc(ll.fecha)}.`
     : ex.destino ? `El cacao de <b>${finca}</b> va camino a <b>${esc(ex.destino)}</b>.` : `El cacao de <b>${finca}</b> está en proceso.`;
   return `<p style="margin:0 0 6px;font-size:17px">${frase}</p>`
-    + `<h3 class="h3">Tu venta</h3>` + kv([["Comprador",esc(co.actor)],["Fecha",esc(co.fecha)],["Kg vendidos",kg!=null&&esc(cod.kg)+" kg"],["Precio por kg",esc(cod.precio)],["Total estimado",kg!=null&&p!=null&&(kg*p).toLocaleString("es-EC",{minimumFractionDigits:2,maximumFractionDigits:2})+" USD"],["Calidad reconocida",esc(cod.calidad)]])
+    + `<h3 class="h3">Tu venta</h3>` + kv([["Tu código de productor",esc(c.codProd)],["Guía de compra",esc(cod.codCompra)],["Comprador",esc(co.actor)],["Fecha",esc(co.fecha)],["Kg vendidos",kg!=null&&esc(cod.kg)+" kg"],["Precio por kg",esc(cod.precio)],["Total estimado",kg!=null&&p!=null&&(kg*p).toLocaleString("es-EC",{minimumFractionDigits:2,maximumFractionDigits:2})+" USD"],["Calidad reconocida",esc(cod.calidad)]])
     + `<h3 class="h3">Qué pasó con tu cacao</h3><ol class="pasos-prod">${l.cadena.map(b=>`<li><b>${esc(etapa(b.etapa).nombre)}</b> · ${esc(b.fecha)} · ${esc(b.lugar)}</li>`).join("")}</ol>`;
 }
 
@@ -662,8 +696,8 @@ function pintarEtiquetas(){
   for(let s=1;s<=n;s++){
     const q=qrcode(0,"L"); q.addData(enlaceSaco(l,s,n)); q.make();
     html += `<div class="etq"><div><img class="lg" src="${logo}" alt="MA&amp;CAO Exportadora Agrícola">
-      <h4>Saco ${s} de ${n}</h4><p><b>Lote:</b> ${esc(l.codigo)}</p><p>${esc(l.variedad)}</p>
-      ${kgEx?`<p><b>Peso aprox.:</b> ${(kgEx/n).toFixed(1)} kg</p>`:""}${ex.destino?`<p><b>Destino:</b> ${esc(ex.destino)}</p>`:""}
+      <h4>Saco ${s} de ${n}</h4><p><b>${esc(codigoSaco(l.codigo,s))}</b></p><p>${esc(l.variedad)}</p>
+      ${kgEx?`<p><b>Peso aprox.:</b> ${(kgEx/n).toFixed(1)} kg</p>`:""}${ex.destino?`<p><b>Destino:</b> ${esc(ex.destino)}</p>`:""}${ex.contenedor?`<p><b>Contenedor:</b> ${esc(ex.contenedor)}</p>`:""}
       <p class="peq">Escanee para verificar origen y trazabilidad</p></div>
       <img class="q" src="${q.createDataURL(4,0)}" alt="QR del saco ${s}"></div>`;
   }

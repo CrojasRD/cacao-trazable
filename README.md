@@ -45,4 +45,8 @@ y escribir esa dirección en el campo "Dirección pública" antes de generar el 
   verificaciones automáticas para control (integridad, fechas, geolocalización UE 2023/1115,
   humedad NTE INEN 176, balance de kilos, DAE/contenedor), etiquetas de sacos con QR propio
   (`&s=N&n=TOTAL` en el enlace) y 14 lotes de ejemplo (001–014), algunos con fallas a propósito.
+- 2026-10-27 — Códigos de trazabilidad alineados con la presentación: productor PRD-provincia-nº,
+  guía de compra COM-año-nº, lote MAC-EC-año-nº, saco lote-Snn, contenedor ISO 6346 con dígito de
+  control calculado y verificado (ej. MSCU 000014-1), precinto y recepción REC-puerto-año-nº.
+  Los lotes de ejemplo se regeneran al cambiar VERSION_EJEMPLOS; los lotes propios no se tocan.
 - Los nombres del lote de ejemplo son ficticios.
