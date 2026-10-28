@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cacao Trazable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+<style>
+:root{
+  --bg:#f7f1e8; --surface:#fffaf3; --ink:#2b1a12; --muted:#7a6457; --line:#e5d7c6;
+  --cacao:#5a2e1b; --cacao-2:#8b4a2b; --leaf:#3f6b3a; --gold:#c9932f; --bad:#b3261e;
+  --chip:#efe2d0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a120d; --surface:#241913; --ink:#f3e7da; --muted:#b39c8b; --line:#3d2c22;
+    --cacao:#e0a77f; --cacao-2:#d08a5e; --leaf:#8fc285; --gold:#e3b558; --bad:#ff8a80; --chip:#33241b;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1a120d; --surface:#241913; --ink:#f3e7da; --muted:#b39c8b; --line:#3d2c22;
+  --cacao:#e0a77f; --cacao-2:#d08a5e; --leaf:#8fc285; --gold:#e3b558; --bad:#ff8a80; --chip:#33241b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+header{padding:28px 16px 20px;border-bottom:1px solid var(--line)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+h1{font-family:Fraunces,serif;font-weight:700;font-size:clamp(26px,5vw,40px);margin:0;color:var(--cacao);letter-spacing:-.01em}
+h2{font-family:Fraunces,serif;font-weight:500;font-size:22px;margin:0 0 12px}
+.sub{color:var(--muted);margin:4px 0 0}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:18px}
+nav button{border:1px solid var(--line);background:transparent;color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;font:inherit}
+nav button[aria-pressed="true"]{background:var(--cacao);color:var(--bg);border-color:var(--cacao)}
+main{padding:24px 0 60px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;font-weight:500}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:70px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.btn{background:var(--cacao);color:var(--bg);border:0;padding:10px 16px;border-radius:9px;font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--cacao);border:1px solid var(--cacao)}
+.btn.warn{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.lotes{display:grid;gap:10px}
+.lote{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:11px;background:var(--bg);flex-wrap:wrap}
+.lote b{font-family:Fraunces,serif;font-size:17px}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--muted)}
+.mono{font-family:"JetBrains Mono",monospace;font-size:11.5px;word-break:break-all;color:var(--muted)}
+.timeline{position:relative;margin:8px 0 0;padding-left:28px}
+.timeline:before{content:"";position:absolute;left:10px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.blk{position:relative;margin-bottom:16px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.blk:before{content:attr(data-n);position:absolute;left:-28px;top:14px;width:22px;height:22px;border-radius:50%;background:var(--leaf);color:var(--bg);font-size:11px;display:grid;place-items:center;font-weight:600}
+.blk.bad{border-color:var(--bad)}
+.blk.bad:before{background:var(--bad);content:"!"}
+.blk h3{margin:0 0 2px;font-size:16px}
+.blk .meta{color:var(--muted);font-size:13px}
+.blk dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 12px;margin:8px 0;font-size:14px}
+.blk dt{color:var(--muted)}
+@media (max-width:560px){.blk dl{grid-template-columns:1fr}.blk dd{margin-bottom:6px}.timeline{padding-left:24px}}
+.blk dd{margin:0}
+.status{padding:12px 14px;border-radius:10px;font-weight:600;margin-bottom:14px}
+.status.ok{background:color-mix(in srgb,var(--leaf) 15%,transparent);color:var(--leaf)}
+.status.ko{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.qrbox{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+#qr{background:#fff;padding:12px;border-radius:12px;line-height:0}
+#qr img{width:220px;height:220px;image-rendering:pixelated}
+.hidden{display:none}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.steps span{font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.steps span.done{background:var(--leaf);color:var(--bg);border-color:var(--leaf)}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
+@media (prefers-reduced-motion:no-preference){.blk{animation:in .35s ease both}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
+@media print{nav,.noprint{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Cacao Trazable · Maicao</h1>
+    <p class="sub">Trazabilidad del cacao de la finca al puerto de destino. Cada etapa queda encadenada a la anterior con una huella SHA-256, como en una blockchain.</p>
+    <nav class="noprint" id="nav">
+      <button data-v="lotes" aria-pressed="true">Lotes</button>
+      <button data-v="registrar" aria-pressed="false">Registrar etapa</button>
+      <button data-v="ver" aria-pressed="false">Trazabilidad y QR</button>
+      <button data-v="como" aria-pressed="false">¿Cómo funciona?</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- LOTES -->
+  <section id="v-lotes">
+    <div class="card">
+      <h2>Nuevo lote de cacao</h2>
+      <div class="grid">
+        <div><label>Código del lote</label><input id="nCodigo" placeholder="CAC-2026-001"></div>
+        <div><label>Variedad</label><input id="nVariedad" placeholder="Criollo / Trinitario / CCN-51"></div>
+        <div><label>Cantidad inicial (kg)</label><input id="nKg" type="number" min="0" placeholder="1200"></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="btnCrear">Crear lote</button>
+        <button class="btn ghost" id="btnDemo">Cargar lote de ejemplo</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Lotes registrados</h2>
+      <div class="lotes" id="listaLotes"></div>
+    </div>
+  </section>
+
+  <!-- REGISTRAR -->
+  <section id="v-registrar" class="hidden">
+    <div class="card">
+      <h2>Registrar una etapa</h2>
+      <div class="grid">
+        <div><label>Lote</label><select id="rLote"></select></div>
+        <div><label>Etapa</label><select id="rEtapa"></select></div>
+        <div><label>Fecha</label><input id="rFecha" type="date"></div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <div><label id="lActor">Responsable</label><input id="rActor" placeholder="Nombre de la persona o empresa"></div>
+        <div><label>Documento / NIT</label><input id="rDoc" placeholder="Opcional"></div>
+        <div><label>Lugar</label><input id="rLugar" placeholder="Vereda, municipio, departamento"></div>
+      </div>
+      <div class="grid" style="margin-top:12px" id="rCampos"></div>
+      <div style="margin-top:12px"><label>Observaciones</label><textarea id="rObs"></textarea></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="btnRegistrar">Agregar a la cadena</button>
+        <span class="chip" id="rMsg"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- VER -->
+  <section id="v-ver" class="hidden">
+    <div class="card noprint" id="selVer">
+      <div class="row"><div style="flex:1;min-width:200px"><label>Lote</label><select id="vLote"></select></div></div>
+    </div>
+    <div class="card" id="qrCard">
+      <h2 id="vTitulo">—</h2>
+      <div class="qrbox">
+        <div id="qr"></div>
+        <div style="flex:1;min-width:240px">
+          <p class="sub" style="margin-top:0">Este QR lleva toda la cadena del lote. Al escanearlo se abre la página y se verifica cada huella.</p>
+          <div class="noprint">
+            <label>Dirección pública de esta página (donde la publiques)</label>
+            <input id="baseUrl" placeholder="https://crojasrd.github.io/cacao-trazable/">
+            <div class="row" style="margin-top:10px">
+              <button class="btn" id="btnPng">Descargar QR (PNG)</button>
+              <button class="btn ghost" id="btnPrint">Imprimir etiqueta</button>
+              <button class="btn ghost" id="btnCopy">Copiar enlace</button>
+            </div>
+            <p class="mono" id="qrInfo"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div id="estado"></div>
+      <div class="steps" id="pasos"></div>
+      <div class="timeline" id="timeline"></div>
+      <div class="row noprint" style="margin-top:8px">
+        <button class="btn warn" id="btnHack">Simular manipulación (demo)</button>
+        <button class="btn ghost" id="btnReparar">Deshacer manipulación</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMO -->
+  <section id="v-como" class="hidden">
+    <div class="card">
+      <h2>¿Cómo funciona?</h2>
+      <p><b>1. Cada etapa es un "bloque".</b> Cultivo, cosecha, fermentación, secado, compra, transformación, exportación y llegada se guardan como bloques con fecha, responsable, lugar y datos técnicos.</p>
+      <p><b>2. Los bloques se encadenan.</b> Cada bloque guarda la huella (hash SHA-256) del bloque anterior y calcula la suya. Si alguien cambia un dato, por ejemplo el origen o los kilos, la huella deja de coincidir y la cadena aparece como <i>alterada</i>.</p>
+      <p><b>3. El QR lleva la cadena.</b> El código QR contiene el lote completo comprimido. Quien lo escanea (comprador, importador, consumidor) ve el recorrido y la verificación, sin necesitar cuenta ni servidor.</p>
+      <p><b>4. Alcance.</b> Esta es una demostración académica: la cadena se verifica, pero los datos viven en el navegador de quien los registra. En producción se publicarían las huellas en una blockchain pública (por ejemplo Polygon o Ethereum) o en una red permisionada (Hyperledger Fabric) para que nadie pueda reescribirlas.</p>
+    </div>
+  </section>
+</main>
+<footer>Proyecto académico · Trazabilidad de cacao con QR y cadena de hashes</footer>
+
+<script>
+// ---------- Etapas de la cadena de valor ----------
+const ETAPAS = [
+  {id:"cultivo", nombre:"Cultivo", actor:"Agricultor / finca", campos:[["finca","Nombre de la finca"],["coord","Coordenadas GPS"],["altitud","Altitud (msnm)"],["hectareas","Hectáreas"],["certif","Certificaciones (orgánico, comercio justo…)"]]},
+  {id:"cosecha", nombre:"Cosecha", actor:"Agricultor", campos:[["kg","Kg de cacao en baba"],["metodo","Método de cosecha"]]},
+  {id:"fermentacion", nombre:"Fermentación", actor:"Responsable de beneficio", campos:[["dias","Días de fermentación"],["cajon","Tipo de cajón"],["temp","Temperatura máx. (°C)"]]},
+  {id:"secado", nombre:"Secado", actor:"Responsable de beneficio", campos:[["dias","Días de secado"],["metodo","Método (solar, marquesina…)"],["humedad","Humedad final (%)"],["kg","Kg de cacao seco"]]},
+  {id:"compra", nombre:"Acopio y venta", actor:"Comprador / cooperativa", campos:[["vendedor","Vendedor"],["kg","Kg comprados"],["precio","Precio por kg (COP)"],["calidad","Calidad / prueba de corte"]]},
+  {id:"transformacion", nombre:"Transformación", actor:"Planta procesadora", campos:[["proceso","Proceso (tostado, licor, nibs…)"],["producto","Producto resultante"],["kg","Kg resultantes"]]},
+  {id:"exportacion", nombre:"Exportación", actor:"Exportador", campos:[["puerto","Puerto de salida"],["destino","País y ciudad de destino"],["importador","Importador"],["dex","Declaración de exportación"],["contenedor","Contenedor / guía"],["kg","Kg exportados"]]},
+  {id:"llegada", nombre:"Llegada a destino", actor:"Importador", campos:[["puerto","Puerto de llegada"],["estado","Estado de la carga"],["kg","Kg recibidos"]]}
+];
+const etapa = id => ETAPAS.find(e=>e.id===id);
+
+// ---------- Almacenamiento local ----------
+const KEY="cacao-trazable-v1";
+let db = {lotes:{}};
+try{ db = JSON.parse(localStorage.getItem(KEY)) || db; }catch(e){}
+const guardar = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){} };
+try{ const u=localStorage.getItem(KEY+"-url"); if(u) document.getElementById("baseUrl").value=u; }catch(e){}
+
+// ---------- Hash SHA-256 ----------
+async function sha256(txt){
+  const bytes = new TextEncoder().encode(txt);
+  if (window.crypto && crypto.subtle) {
+    const buf = await crypto.subtle.digest("SHA-256", bytes);
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  return sha256js(bytes); // respaldo si el navegador no ofrece crypto.subtle
+}
+function sha256js(bytes){
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const l=bytes.length, n=((l+9+63)>>6)<<6, m=new Uint8Array(n);
+  m.set(bytes); m[l]=0x80;
+  const dv=new DataView(m.buffer); dv.setUint32(n-8,Math.floor(l/0x20000000)); dv.setUint32(n-4,(l*8)>>>0);
+  const W=new Uint32Array(64), r=(x,s)=>(x>>>s)|(x<<(32-s));
+  for(let o=0;o<n;o+=64){
+    for(let i=0;i<16;i++) W[i]=dv.getUint32(o+i*4);
+    for(let i=16;i<64;i++){ const a=W[i-15], b=W[i-2]; W[i]=(W[i-16]+(r(a,7)^r(a,18)^(a>>>3))+W[i-7]+(r(b,17)^r(b,19)^(b>>>10)))>>>0; }
+    let [a,b,c,d,e,f,g,h]=H;
+    for(let i=0;i<64;i++){
+      const t1=(h+(r(e,6)^r(e,11)^r(e,25))+((e&f)^(~e&g))+K[i]+W[i])>>>0;
+      const t2=((r(a,2)^r(a,13)^r(a,22))+((a&b)^(a&c)^(b&c)))>>>0;
+      h=g; g=f; f=e; e=(d+t1)>>>0; d=c; c=b; b=a; a=(t1+t2)>>>0;
+    }
+    H[0]=(H[0]+a)>>>0;H[1]=(H[1]+b)>>>0;H[2]=(H[2]+c)>>>0;H[3]=(H[3]+d)>>>0;H[4]=(H[4]+e)>>>0;H[5]=(H[5]+f)>>>0;H[6]=(H[6]+g)>>>0;H[7]=(H[7]+h)>>>0;
+  }
+  return H.map(x=>x.toString(16).padStart(8,"0")).join("");
+}
+const contenido = b => JSON.stringify({i:b.i,lote:b.lote,etapa:b.etapa,fecha:b.fecha,actor:b.actor,doc:b.doc,lugar:b.lugar,datos:b.datos,obs:b.obs,ts:b.ts,prev:b.prev});
+async function agregarBloque(lote, data){
+  const cadena = lote.cadena;
+  const prev = cadena.length ? cadena[cadena.length-1].hash : "0".repeat(64);
+  const b = {i:cadena.length, lote:lote.codigo, ...data, ts:new Date().toISOString(), prev};
+  b.hash = await sha256(contenido(b));
+  cadena.push(b);
+  return b;
+}
+async function verificar(cadena){
+  const res=[]; let prev="0".repeat(64), ok=true;
+  for(const b of cadena){
+    const h = await sha256(contenido(b));
+    const bien = ok && b.prev===prev && h===b.hash;
+    if(!bien) ok=false;
+    res.push(bien); prev=b.hash;
+  }
+  return {ok, res};
+}
+
+// ---------- Utilidades ----------
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hoy = ()=> new Date().toISOString().slice(0,10);
+
+// ---------- Navegación ----------
+function ir(v){
+  document.querySelectorAll("#nav button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===v));
+  ["lotes","registrar","ver","como"].forEach(x=>$("v-"+x).classList.toggle("hidden", x!==v));
+  if(v==="lotes") pintarLotes();
+  if(v==="registrar") prepRegistrar();
+  if(v==="ver") pintarVer();
+}
+$("nav").addEventListener("click", e=>{ if(e.target.dataset.v) ir(e.target.dataset.v); });
+
+// ---------- Lotes ----------
+function pintarLotes(){
+  const ls = Object.values(db.lotes);
+  $("listaLotes").innerHTML = ls.length ? ls.map(l=>`
+    <div class="lote">
+      <div><b>${esc(l.codigo)}</b> <span class="chip">${esc(l.variedad)}</span> <span class="chip">${esc(l.kg)} kg</span>
+      <div class="sub" style="font-size:13px">${l.cadena.length} de ${ETAPAS.length} etapas · última: ${l.cadena.length? esc(etapa(l.cadena.at(-1).etapa).nombre):"ninguna"}</div></div>
+      <div class="row"><button class="btn ghost" data-reg="${esc(l.codigo)}">Registrar etapa</button><button class="btn" data-ver="${esc(l.codigo)}">Ver y QR</button></div>
+    </div>`).join("") : `<p class="sub">Aún no hay lotes. Crea uno o carga el ejemplo.</p>`;
+}
+$("listaLotes").addEventListener("click", e=>{
+  const r=e.target.dataset.reg, v=e.target.dataset.ver;
+  if(r){ ir("registrar"); $("rLote").value=r; sugerirEtapa(); }
+  if(v){ ir("ver"); $("vLote").value=v; pintarVer(); }
+});
+$("btnCrear").onclick = ()=>{
+  const codigo=$("nCodigo").value.trim(); if(!codigo) return alert("Escribe el código del lote");
+  if(db.lotes[codigo]) return alert("Ese código ya existe");
+  db.lotes[codigo]={codigo, variedad:$("nVariedad").value.trim()||"Sin especificar", kg:$("nKg").value||"0", cadena:[]};
+  guardar(); $("nCodigo").value=$("nVariedad").value=$("nKg").value=""; pintarLotes();
+};
+$("btnDemo").onclick = async ()=>{
+  const codigo="CAC-GUA-2026-014";
+  if(db.lotes[codigo]){ ir("ver"); $("vLote").value=codigo; return pintarVer(); }
+  const l = db.lotes[codigo] = {codigo, variedad:"Trinitario fino de aroma", kg:"1500", cadena:[]};
+  const demo = [
+    ["cultivo","2026-03-02","Asociación de productores (ejemplo)","","Vereda Mingueo, Dibulla, La Guajira",{finca:"Finca El Recreo",coord:"11.245, -73.310",altitud:"350",hectareas:"6",certif:"Orgánico en transición"},"Cultivo agroforestal bajo sombra"],
+    ["cosecha","2026-08-10","Finca El Recreo","","Dibulla, La Guajira",{kg:"1500",metodo:"Manual, mazorcas maduras"},""],
+    ["fermentacion","2026-08-11","Centro de beneficio comunitario","","Dibulla, La Guajira",{dias:"6",cajon:"Cajones de madera en escalera",temp:"48"},"Volteo cada 48 h"],
+    ["secado","2026-08-17","Centro de beneficio comunitario","","Dibulla, La Guajira",{dias:"8",metodo:"Marquesina solar",humedad:"7",kg:"560"},""],
+    ["compra","2026-08-28","Comercializadora de cacao de Maicao (ejemplo)","","Maicao, La Guajira",{vendedor:"Finca El Recreo",kg:"560",precio:"21000",calidad:"Prueba de corte: 82 % bien fermentado"},"Pago al productor registrado"],
+    ["transformacion","2026-09-05","Planta procesadora (ejemplo)","","Riohacha, La Guajira",{proceso:"Selección y empaque en sacos de yute",producto:"Cacao en grano premium",kg:"550"},""],
+    ["exportacion","2026-09-20","Exportadora (ejemplo)","","Puerto de Santa Marta",{puerto:"Santa Marta",destino:"Hamburgo, Alemania",importador:"Importador europeo (ejemplo)",dex:"DEX-0000000",contenedor:"MSCU-0000000",kg:"550"},""],
+    ["llegada","2026-10-14","Importador europeo (ejemplo)","","Hamburgo, Alemania",{puerto:"Hamburgo",estado:"Conforme, sin humedad",kg:"548"},""]
+  ];
+  for(const [et,fecha,actor,doc,lugar,datos,obs] of demo) await agregarBloque(l,{etapa:et,fecha,actor,doc,lugar,datos,obs});
+  guardar(); ir("ver"); $("vLote").value=codigo; pintarVer();
+};
+
+// ---------- Registrar ----------
+function opcionesLotes(sel){
+  const ls=Object.keys(db.lotes);
+  sel.innerHTML = ls.length ? ls.map(c=>`<option>${esc(c)}</option>`).join("") : `<option value="">(crea un lote primero)</option>`;
+}
+function prepRegistrar(){
+  const actual=$("rLote").value; opcionesLotes($("rLote")); if(actual && db.lotes[actual]) $("rLote").value=actual;
+  $("rEtapa").innerHTML = ETAPAS.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join("");
+  $("rFecha").value=hoy(); sugerirEtapa();
+}
+function sugerirEtapa(){
+  const l=db.lotes[$("rLote").value]; if(!l) return;
+  const sig = ETAPAS[Math.min(l.cadena.length, ETAPAS.length-1)];
+  $("rEtapa").value=sig.id; pintarCampos();
+}
+function pintarCampos(){
+  const e=etapa($("rEtapa").value);
+  $("lActor").textContent = e.actor;
+  $("rCampos").innerHTML = e.campos.map(([k,t])=>`<div><label>${t}</label><input data-k="${k}"></div>`).join("");
+}
+$("rLote").onchange=sugerirEtapa; $("rEtapa").onchange=pintarCampos;
+$("btnRegistrar").onclick = async ()=>{
+  const l=db.lotes[$("rLote").value]; if(!l) return alert("Crea un lote primero");
+  if(!$("rActor").value.trim()) return alert("Indica el responsable de la etapa");
+  const datos={}; $("rCampos").querySelectorAll("input").forEach(i=>{ if(i.value.trim()) datos[i.dataset.k]=i.value.trim(); });
+  const b = await agregarBloque(l,{etapa:$("rEtapa").value,fecha:$("rFecha").value,actor:$("rActor").value.trim(),doc:$("rDoc").value.trim(),lugar:$("rLugar").value.trim(),datos,obs:$("rObs").value.trim()});
+  guardar();
+  $("rMsg").textContent=`Bloque #${b.i} agregado · ${b.hash.slice(0,12)}…`;
+  ["rActor","rDoc","rLugar","rObs"].forEach(id=>$(id).value=""); sugerirEtapa();
+};
+
+// ---------- Ver / QR ----------
+let loteVista=null, modoPublico=false;
+// El QR lleva los datos de cada bloque, los primeros 8 caracteres de su huella
+// y la huella final completa. Al abrirlo se recalcula toda la cadena y se compara.
+function codificar(l){
+  const c = l.cadena;
+  const p = {c:l.codigo, v:l.variedad, k:l.kg,
+    b:c.map(b=>[b.etapa,b.fecha,b.actor,b.doc,b.lugar,b.datos,b.obs,b.ts,b.hash.slice(0,8)]),
+    f:c.length ? c[c.length-1].hash : ""};
+  return LZString.compressToEncodedURIComponent(JSON.stringify(p));
+}
+async function decodificar(txt){
+  const p = JSON.parse(LZString.decompressFromEncodedURIComponent(txt));
+  const l = {codigo:p.c, variedad:p.v, kg:p.k, cadena:[]};
+  let prev = "0".repeat(64);
+  for(let i=0;i<p.b.length;i++){
+    const [etapa,fecha,actor,doc,lugar,datos,obs,ts,h8] = p.b[i];
+    const b = {i, lote:p.c, etapa, fecha, actor, doc, lugar, datos, obs, ts, prev};
+    const h = await sha256(contenido(b));
+    const ultimo = i===p.b.length-1;
+    // Si la huella recalculada no coincide con la sellada, se deja la sellada para que la verificación falle.
+    b.hash = ultimo ? p.f : (h.startsWith(h8) ? h : h8 + "…(sellada)");
+    l.cadena.push(b); prev = h;
+  }
+  return l;
+}
+function baseUrl(){
+  const v = $("baseUrl").value.trim(); if(v) return v;
+  return /^https?:/.test(location.protocol) ? location.href.split("#")[0] : "https://crojasrd.github.io/cacao-trazable/";
+}
+function enlace(l){ return baseUrl() + "#d=" + codificar(l); }
+async function pintarVer(){
+  if(!modoPublico){
+    const actual=$("vLote").value; opcionesLotes($("vLote")); if(actual && db.lotes[actual]) $("vLote").value=actual;
+    loteVista = db.lotes[$("vLote").value] || null;
+  }
+  const l=loteVista;
+  if(!l){ $("vTitulo").textContent="No hay lotes"; $("timeline").innerHTML=""; $("estado").innerHTML=""; $("qr").innerHTML=""; $("pasos").innerHTML=""; return; }
+  $("vTitulo").textContent = `Lote ${l.codigo} · ${l.variedad}`;
+  const {ok,res} = await verificar(l.cadena);
+  $("estado").innerHTML = !l.cadena.length ? `<div class="status ok">Lote sin etapas registradas.</div>` :
+    ok ? `<div class="status ok">✔ Cadena íntegra: ${l.cadena.length} bloques verificados, ninguna huella fue alterada.</div>`
+       : `<div class="status ko">✖ Cadena alterada: a partir del bloque marcado los datos no coinciden con su huella.</div>`;
+  const hechas=new Set(l.cadena.map(b=>b.etapa));
+  $("pasos").innerHTML = ETAPAS.map(e=>`<span class="${hechas.has(e.id)?"done":""}">${e.nombre}</span>`).join("");
+  $("timeline").innerHTML = l.cadena.map((b,k)=>{
+    const e=etapa(b.etapa);
+    const filas = e.campos.filter(([c])=>b.datos[c]).map(([c,t])=>`<dt>${esc(t)}</dt><dd>${esc(b.datos[c])}</dd>`).join("");
+    return `<div class="blk ${res[k]?"":"bad"}" data-n="${b.i}">
+      <h3>${esc(e.nombre)}</h3>
+      <div class="meta">${esc(b.fecha)} · ${esc(b.actor)}${b.doc?" · "+esc(b.doc):""}${b.lugar?" · "+esc(b.lugar):""}</div>
+      <dl>${filas}</dl>${b.obs?`<div class="meta">${esc(b.obs)}</div>`:""}
+      <div class="mono">huella: ${b.hash}<br>anterior: ${b.prev}</div></div>`;
+  }).join("");
+  pintarQR(l);
+  $("btnHack").classList.toggle("hidden", modoPublico); $("btnReparar").classList.toggle("hidden", modoPublico);
+}
+function pintarQR(l){
+  const url = enlace(l);
+  let qr = qrcode(0,"L"); qr.addData(url); try{ qr.make(); }catch(e){ qr=null; }
+  if(!qr){ $("qr").innerHTML=""; $("qrInfo").textContent="La cadena es demasiado grande para un QR. Reduce las observaciones."; return; }
+  $("qr").innerHTML = qr.createImgTag(6, 0);
+  $("qr").querySelector("img").alt = "Código QR del lote "+l.codigo;
+  $("qrInfo").textContent = `QR de ${qr.getModuleCount()}×${qr.getModuleCount()} módulos · ${url.length} caracteres · imprímelo de al menos 5 cm`;
+}
+$("vLote").onchange=pintarVer;
+$("baseUrl").oninput=()=>{ try{ localStorage.setItem(KEY+"-url",$("baseUrl").value.trim()); }catch(e){} if(loteVista) pintarQR(loteVista); };
+$("btnPng").onclick=()=>{
+  const img=$("qr").querySelector("img"); if(!img) return;
+  const c=document.createElement("canvas"), s=900, m=60; c.width=s; c.height=s+70;
+  const x=c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height);
+  x.imageSmoothingEnabled=false; x.drawImage(img,m,m,s-2*m,s-2*m);
+  x.fillStyle="#2b1a12"; x.font="bold 34px Inter, sans-serif"; x.textAlign="center"; x.fillText("Lote "+loteVista.codigo, s/2, s+20);
+  const a=document.createElement("a"); a.download=`QR_${loteVista.codigo}.png`; a.href=c.toDataURL("image/png"); a.click();
+};
+$("btnPrint").onclick=()=>window.print();
+$("btnCopy").onclick=async()=>{ try{ await navigator.clipboard.writeText(enlace(loteVista)); $("qrInfo").textContent="Enlace copiado"; }catch(e){ prompt("Copia el enlace:", enlace(loteVista)); } };
+$("btnHack").onclick=()=>{
+  const l=loteVista; if(!l||l.cadena.length<2) return;
+  const b=l.cadena[0]; l._orig = l._orig || JSON.stringify({datos:b.datos, lugar:b.lugar});
+  b.datos.finca = (b.datos.finca||"Finca")+" (ALTERADO)"; b.lugar = "Origen falso";
+  guardar(); pintarVer();
+};
+$("btnReparar").onclick=()=>{
+  const l=loteVista; if(!l||!l._orig) return;
+  const b=l.cadena[0], o=JSON.parse(l._orig); b.datos=o.datos; b.lugar=o.lugar; delete l._orig;
+  guardar(); pintarVer();
+};
+
+// ---------- Modo público: abierto desde un QR ----------
+async function abrirDesdeQR(){
+  const m = location.hash.match(/#d=(.+)$/); if(!m) return false;
+  try{
+    loteVista = await decodificar(m[1]);
+    modoPublico=true;
+    $("nav").classList.add("hidden"); $("selVer").classList.add("hidden");
+    document.querySelector(".sub").textContent="Estás viendo la trazabilidad verificada de un lote de cacao. Cada etapa está sellada con una huella SHA-256 encadenada a la anterior.";
+    ["lotes","registrar","como"].forEach(x=>$("v-"+x).classList.add("hidden")); $("v-ver").classList.remove("hidden");
+    pintarVer(); return true;
+  }catch(e){ return false; }
+}
+abrirDesdeQR().then(ok=>{ if(!ok) pintarLotes(); });
+</script>
+</body>
+</html>
