@@ -2,6 +2,9 @@
 
 Bitácora del proyecto. Autor: Carlos Alberto Rojas Domínguez.
 
+## Dirección publicada
+https://crojasrd.github.io/cacao-trazable/ (GitHub Pages, repo CrojasRD/cacao-trazable).
+
 ## Qué es
 App web de un solo archivo (`index.html`) para seguir un lote de cacao desde la finca
 hasta el país de destino. Cada etapa se guarda como un "bloque" encadenado al anterior
@@ -32,4 +35,6 @@ y escribir esa dirección en el campo "Dirección pública" antes de generar el 
 - 2026-10-27 — Alcance: es una cadena de hashes, no una blockchain distribuida. En
   producción se anclarían las huellas en una red pública (Polygon/Ethereum) o
   permisionada (Hyperledger Fabric).
+- 2026-10-27 — Publicada en GitHub Pages; el lote de ejemplo se carga solo si el
+  navegador no tiene lotes guardados, para que la página nunca se vea vacía.
 - Los nombres del lote de ejemplo son ficticios.
