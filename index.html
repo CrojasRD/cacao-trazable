@@ -439,7 +439,11 @@ async function abrirDesdeQR(){
     pintarVer(); return true;
   }catch(e){ return false; }
 }
-abrirDesdeQR().then(ok=>{ if(!ok) pintarLotes(); });
+// Si no hay lotes guardados, se carga el lote de ejemplo completo para que la página nunca se vea vacía.
+abrirDesdeQR().then(ok=>{
+  if(ok) return;
+  if(!Object.keys(db.lotes).length) $("btnDemo").click(); else pintarLotes();
+});
 </script>
 </body>
 </html>
