@@ -49,4 +49,8 @@ y escribir esa dirección en el campo "Dirección pública" antes de generar el 
   guía de compra COM-año-nº, lote MAC-EC-año-nº, saco lote-Snn, contenedor ISO 6346 con dígito de
   control calculado y verificado (ej. MSCU 000014-1), precinto y recepción REC-puerto-año-nº.
   Los lotes de ejemplo se regeneran al cambiar VERSION_EJEMPLOS; los lotes propios no se tocan.
+- 2026-10-28 — Acceso por rol: el precio pagado al productor se sella con huella con sal y viaja
+  cifrado (AES-GCM, clave derivada con PBKDF2) dentro del QR, una copia por rol. El comprador no lo
+  ve; productor y entidad de control entran con su clave. Claves de demostración:
+  productor `FINCA-2026`, control `CONTROL-2026` (se cambian en la pestaña Lotes).
 - Los nombres del lote de ejemplo son ficticios.

@@ -105,19 +105,21 @@ a{color:var(--cacao-2)}
 .tabla th,.tabla td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .tabla th{color:var(--muted);font-weight:500}
 .pasos-prod{margin:0;padding-left:20px;display:grid;gap:4px}
-.etiquetas{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;margin-top:14px}
+.etiquetas{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:14px;margin-top:14px}
 .etq{background:#fff;color:#2a1a0c;border:2px dashed #5f3712;border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;break-inside:avoid;page-break-inside:avoid}
 .etq .lg{height:36px;display:block}
 .etq h4{margin:8px 0 4px;font-family:Fraunces,serif;font-size:21px;color:#5f3712}
 .etq p{margin:2px 0;font-size:13px}
 .etq .peq{font-size:11px;color:#76604c;margin-top:6px}
-.etq img.q{width:150px;height:150px;image-rendering:pixelated}
+.etq img.q{width:200px;height:200px;image-rendering:pixelated}
 @media print{
   body.print-etq header, body.print-etq footer, body.print-etq #v-ver > :not(#etqCard), body.print-etq #etqCard .noprint{display:none!important}
   body.print-etq #etqCard{border:0;padding:0;background:#fff}
   body.print-etq .etiquetas{grid-template-columns:1fr 1fr}
   body:not(.print-etq) #etqCard, body:not(.print-etq) #rolCard{display:none!important}
 }
+.clave{background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:18px;display:grid;gap:10px}
+.clave input{max-width:280px}
 footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
 @media (prefers-reduced-motion:no-preference){.blk{animation:in .35s ease both}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
 @media print{nav,.noprint{display:none!important}body{background:#fff}}
@@ -160,6 +162,15 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
       <h2>Lotes registrados</h2>
       <div class="lotes" id="listaLotes"></div>
     </div>
+    <div class="card">
+      <h2>Claves de acceso por rol</h2>
+      <p class="sub" style="margin-top:-6px">El precio pagado al productor viaja cifrado dentro del QR: solo lo leen el productor y la entidad de control con su clave. Los lotes ya registrados conservan las claves con las que se sellaron.</p>
+      <div class="grid" style="margin-top:12px">
+        <div><label for="kProd">Clave del productor</label><input id="kProd" autocomplete="off"></div>
+        <div><label for="kCtrl">Clave de entidades de control</label><input id="kCtrl" autocomplete="off"></div>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn ghost" id="btnClaves" type="button">Guardar claves</button><span class="chip" id="kMsg"></span></div>
+    </div>
   </section>
 
   <!-- REGISTRAR -->
@@ -193,7 +204,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
     <div class="card" id="rolCard">
       <div id="sacoInfo"></div>
       <h2>¿Quién está verificando?</h2>
-      <p class="sub" id="rolSub" style="margin:-6px 0 10px">Vista previa de lo que ve cada actor al escanear el QR de un saco.</p>
+      <p class="sub" id="rolSub" style="margin:-6px 0 10px">Vista previa de lo que ve cada actor al escanear el QR de un saco. En el QR, las vistas de productor y de control piden clave.</p>
       <div class="roles" id="roles">
         <button type="button" data-rol="comprador" aria-pressed="true">Comprador / importador</button>
         <button type="button" data-rol="control" aria-pressed="false">Entidad de control</button>
@@ -251,7 +262,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
       <p><b>1. Cada etapa es un "bloque".</b> Cultivo, cosecha, fermentación, secado, compra, transformación, exportación y llegada se guardan como bloques con fecha, responsable, lugar y datos técnicos.</p>
       <p><b>2. Los bloques se encadenan.</b> Cada bloque guarda la huella (hash SHA-256) del bloque anterior y calcula la suya. Si alguien cambia un dato, por ejemplo el origen o los kilos, la huella deja de coincidir y la cadena aparece como <i>alterada</i>.</p>
       <p><b>3. El QR lleva la cadena.</b> El código QR contiene el lote completo comprimido. Quien lo escanea (comprador, importador, consumidor) ve el recorrido y la verificación, sin necesitar cuenta ni servidor.</p>
-      <p><b>4. Cada actor ve lo que necesita.</b> Al escanear el QR de un saco se elige quién verifica: el <i>comprador o importador</i> ve origen, calidad y ruta; la <i>entidad de control</i> (Agrocalidad, SENAE, autoridades de la UE) ve verificaciones automáticas de integridad, fechas, geolocalización, humedad, balance de kilos y documentos; el <i>productor</i> ve a quién vendió, a qué precio y a dónde llegó su cacao.</p>
+      <p><b>4. Cada actor ve lo que necesita.</b> Al escanear el QR de un saco se elige quién verifica: el <i>comprador o importador</i> ve origen, calidad y ruta; la <i>entidad de control</i> (Agrocalidad, SENAE, autoridades de la UE) ve verificaciones automáticas de integridad, fechas, geolocalización, humedad, balance de kilos y documentos; el <i>productor</i> ve a quién vendió, a qué precio y a dónde llegó su cacao. Estas dos últimas vistas piden clave, porque el precio pagado viaja cifrado en el QR.</p>
       <p><b>5. Alcance.</b> Esta es una demostración académica: la cadena se verifica, pero los datos viven en el navegador de quien los registra. En producción se publicarían las huellas en una blockchain pública (por ejemplo Polygon o Ethereum) o en una red permisionada (Hyperledger Fabric) para que nadie pueda reescribirlas.</p>
     </div>
   </section>
@@ -350,11 +361,54 @@ function sha256js(bytes){
   }
   return H.map(x=>x.toString(16).padStart(8,"0")).join("");
 }
-const contenido = b => JSON.stringify({i:b.i,lote:b.lote,etapa:b.etapa,fecha:b.fecha,actor:b.actor,doc:b.doc,lugar:b.lugar,datos:b.datos,obs:b.obs,ts:b.ts,prev:b.prev});
+// ---------- Datos privados por rol ----------
+// El precio pagado al productor no va en claro: se sella con una huella con sal (ph) y viaja
+// cifrado con AES-GCM, una copia con la clave del productor y otra con la de control.
+const PRIVADOS = {compra:["precio"]};
+const CLAVES_DEF = {productor:"FINCA-2026", control:"CONTROL-2026"};
+let claves = {...CLAVES_DEF};
+try{ Object.assign(claves, JSON.parse(localStorage.getItem("cacao-claves"))||{}); }catch(e){}
+const ROL_CLAVE = {productor:"p", control:"c"};
+const ACCESO_TXT = "MA&CAO";
+const b64 = u8 => btoa(String.fromCharCode(...u8)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const deB64 = t => Uint8Array.from(atob(t.replace(/-/g,"+").replace(/_/g,"/")), c=>c.charCodeAt(0));
+const aleatorio = n => crypto.getRandomValues(new Uint8Array(n));
+const hayCifrado = () => !!(window.crypto && crypto.subtle);
+async function llaveDe(clave, sal){
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(clave), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2", salt:sal, iterations:60000, hash:"SHA-256"}, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+async function cifrar(texto, clave){
+  const sal=aleatorio(16), iv=aleatorio(12);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM", iv}, await llaveDe(clave, sal), new TextEncoder().encode(texto)));
+  const todo = new Uint8Array(28+ct.length); todo.set(sal); todo.set(iv,16); todo.set(ct,28);
+  return b64(todo);
+}
+async function descifrar(txt, clave){
+  const todo = deB64(txt);
+  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:todo.slice(16,28)}, await llaveDe(clave, todo.slice(0,16)), todo.slice(28));
+  return new TextDecoder().decode(pt);
+}
+async function cifrarPorRol(texto){
+  if(!hayCifrado()) return null;
+  return {p: await cifrar(texto, claves.productor), c: await cifrar(texto, claves.control)};
+}
+// Cada lote guarda un testigo cifrado con cada clave, para comprobar la clave al entrar.
+async function sellarAcceso(l){ l.acceso = await cifrarPorRol(ACCESO_TXT); }
+
+const contenido = b => JSON.stringify(Object.assign({i:b.i,lote:b.lote,etapa:b.etapa,fecha:b.fecha,actor:b.actor,doc:b.doc,lugar:b.lugar,datos:b.datos,obs:b.obs,ts:b.ts,prev:b.prev}, b.privHash?{ph:b.privHash}:{}));
 async function agregarBloque(lote, data){
   const cadena = lote.cadena;
   const prev = cadena.length ? cadena[cadena.length-1].hash : "0".repeat(64);
-  const b = {i:cadena.length, lote:lote.codigo, ...data, ts:new Date().toISOString(), prev};
+  const datos = {...data.datos}, priv = {};
+  for(const k of PRIVADOS[data.etapa]||[]) if(datos[k]!=null && datos[k]!==""){ priv[k]=datos[k]; delete datos[k]; }
+  const b = {i:cadena.length, lote:lote.codigo, ...data, datos, ts:new Date().toISOString(), prev};
+  if(Object.keys(priv).length){
+    const sal = [...aleatorio(16)].map(x=>x.toString(16).padStart(2,"0")).join("");
+    b.privado = priv; b.sal = sal;
+    b.privHash = await sha256(sal + JSON.stringify(priv));
+    b.cifrado = await cifrarPorRol(JSON.stringify({priv, sal}));
+  }
   b.hash = await sha256(contenido(b));
   cadena.push(b);
   return b;
@@ -400,16 +454,18 @@ $("listaLotes").addEventListener("click", e=>{
   if(r){ ir("registrar"); $("rLote").value=r; sugerirEtapa(); }
   if(v){ ir("ver"); $("vLote").value=v; pintarVer(); }
 });
-$("btnCrear").onclick = ()=>{
+$("btnCrear").onclick = async ()=>{
   const codigo=$("nCodigo").value.trim(); if(!codigo) return alert("Escribe el código del lote");
   if(db.lotes[codigo]) return alert("Ese código ya existe");
   db.lotes[codigo]={codigo, variedad:$("nVariedad").value.trim()||"Sin especificar", kg:$("nKg").value||"0", cadena:[]};
+  await sellarAcceso(db.lotes[codigo]);
   guardar(); $("nCodigo").value=$("nVariedad").value=$("nKg").value=""; pintarLotes();
 };
 async function crearLote014(){
   const codigo="MAC-EC-2026-014";
   if(db.lotes[codigo]) return;
   const l = db.lotes[codigo] = {codigo, variedad:"Nacional fino de aroma (Arriba)", kg:"1500", cadena:[]};
+  await sellarAcceso(l);
   // Datos de ejemplo (fincas y personas ficticias) para la demostración.
   const demo = [
     ["cultivo","2026-03-02","Asociación de productores (ejemplo)","","Recinto San Juan, Vinces, Los Ríos",{codProd:"PRD-LR-0145",finca:"Finca El Recreo",coord:"-1.552, -79.751",altitud:"25",hectareas:"6",certif:"Orgánico en transición"},"Cultivo agroforestal bajo sombra"],
@@ -451,6 +507,7 @@ const fechaMas = (base, dias) => { const t=new Date(base+"T12:00:00Z"); t.setUTC
 async function crearEjemplo(e){
   const codigo = "MAC-EC-2026-"+e.n;
   const l = db.lotes[codigo] = {codigo, variedad:e.variedad, kg:String(e.baba), cadena:[]};
+  await sellarAcceso(l);
   const ccn = e.variedad.startsWith("CCN");
   const seco = Math.round(e.baba*0.37), planta = seco-10, recibido = planta - (e.perdida||2);
   const sacos = Math.max(1, Math.round(planta/69));
@@ -476,7 +533,7 @@ async function crearEjemplo(e){
   ].slice(0, e.etapas);
   for(const [et,fecha,actor,lugar,datos,obs] of pasos) await agregarBloque(l,{etapa:et,fecha,actor,doc:"",lugar,datos,obs});
 }
-const VERSION_EJEMPLOS = 2;
+const VERSION_EJEMPLOS = 3;
 async function cargarEjemplos(){
   if(db.ejemplosVer !== VERSION_EJEMPLOS){
     for(let k=1;k<=14;k++) delete db.lotes["MAC-EC-2026-"+String(k).padStart(3,"0")];
@@ -484,6 +541,17 @@ async function cargarEjemplos(){
   }
   for(const e of EJEMPLOS) if(!db.lotes["MAC-EC-2026-"+e.n]) await crearEjemplo(e);
 }
+
+// ---------- Claves de acceso ----------
+$("kProd").value = claves.productor; $("kCtrl").value = claves.control;
+$("btnClaves").onclick = ()=>{
+  const kp=$("kProd").value.trim(), kc=$("kCtrl").value.trim();
+  if(kp.length<6 || kc.length<6) return $("kMsg").textContent="Usa al menos 6 caracteres";
+  if(kp===kc) return $("kMsg").textContent="Las dos claves deben ser distintas";
+  claves = {productor:kp, control:kc};
+  try{ localStorage.setItem("cacao-claves", JSON.stringify(claves)); }catch(e){}
+  $("kMsg").textContent="Guardadas: se usarán en los próximos lotes";
+};
 
 // ---------- Registrar ----------
 function opcionesLotes(sel){
@@ -524,23 +592,25 @@ const num = v => { const x=parseFloat(String(v??"").replace(",",".")); return is
 function codificar(l){
   const c = l.cadena;
   const p = {c:l.codigo, v:l.variedad, k:l.kg,
-    b:c.map(b=>[b.etapa,b.fecha,b.actor,b.doc,b.lugar,b.datos,b.obs,b.ts,b.hash.slice(0,8)]),
-    f:c.length ? c[c.length-1].hash : ""};
+    b:c.map(b=>[b.etapa,b.fecha,b.actor,b.doc,b.lugar,b.datos,b.obs,b.ts,b.hash.slice(0,8), ...(b.privHash?[b.privHash, b.cifrado||0]:[])]),
+    f:c.length ? c[c.length-1].hash : "", a:(c.some(b=>b.cifrado) ? 0 : l.acceso||0)};
   return LZString.compressToEncodedURIComponent(JSON.stringify(p));
 }
 async function decodificar(txt){
   const p = JSON.parse(LZString.decompressFromEncodedURIComponent(txt));
-  const l = {codigo:p.c, variedad:p.v, kg:p.k, cadena:[]};
+  const l = {codigo:p.c, variedad:p.v, kg:p.k, cadena:[], acceso:p.a||null};
   let prev = "0".repeat(64);
   for(let i=0;i<p.b.length;i++){
-    const [etapa,fecha,actor,doc,lugar,datos,obs,ts,h8] = p.b[i];
+    const [etapa,fecha,actor,doc,lugar,datos,obs,ts,h8,ph,cif] = p.b[i];
     const b = {i, lote:p.c, etapa, fecha, actor, doc, lugar, datos, obs, ts, prev};
+    if(ph){ b.privHash = ph; b.cifrado = cif||null; }
     const h = await sha256(contenido(b));
     const ultimo = i===p.b.length-1;
     // Si la huella recalculada no coincide con la sellada, se deja la sellada para que la verificación falle.
     b.hash = ultimo ? p.f : (h.startsWith(h8) ? h : h8 + "…(sellada)");
     l.cadena.push(b); prev = h;
   }
+  l.protegido = !!(l.acceso || l.cadena.some(b=>b.cifrado));
   return l;
 }
 function baseUrl(){
@@ -565,7 +635,11 @@ async function pintarVer(){
   $("pasos").innerHTML = ETAPAS.map(e=>`<span class="${hechas.has(e.id)?"done":""}">${e.nombre}</span>`).join("");
   $("timeline").innerHTML = l.cadena.map((b,k)=>{
     const e=etapa(b.etapa);
-    const filas = e.campos.filter(([c])=>b.datos[c]).map(([c,t])=>`<dt>${esc(t)}</dt><dd>${esc(b.datos[c])}</dd>`).join("");
+    const pv = privDe(b)||{}, reservados = b.privHash ? (PRIVADOS[b.etapa]||[]) : [];
+    const filas = e.campos.filter(([c])=>b.datos[c]||pv[c]||reservados.includes(c)).map(([c,t])=>{
+      const v = b.datos[c] ?? pv[c];
+      return `<dt>${esc(t)}</dt><dd>${v!=null?esc(v):'<span class="meta">Reservado: solo productor y entidad de control</span>'}</dd>`;
+    }).join("");
     return `<div class="blk ${res[k]?"":"bad"}" data-n="${b.i}">
       <h3>${esc(e.nombre)}</h3>
       <div class="meta">${esc(b.fecha)} · ${esc(b.actor)}${b.doc?" · "+esc(b.doc):""}${b.lugar?" · "+esc(b.lugar):""}</div>
@@ -582,7 +656,7 @@ function pintarQR(l){
   if(!qr){ $("qr").innerHTML=""; $("qrInfo").textContent="La cadena es demasiado grande para un QR. Reduce las observaciones."; return; }
   $("qr").innerHTML = qr.createImgTag(6, 0);
   $("qr").querySelector("img").alt = "Código QR del lote "+l.codigo;
-  $("qrInfo").textContent = `QR de ${qr.getModuleCount()}×${qr.getModuleCount()} módulos · ${url.length} caracteres · imprímelo de al menos 5 cm`;
+  $("qrInfo").textContent = `QR de ${qr.getModuleCount()}×${qr.getModuleCount()} módulos · ${url.length} caracteres · imprímelo de al menos 6 cm`;
 }
 $("vLote").onchange=pintarVer;
 $("baseUrl").oninput=()=>{ try{ localStorage.setItem(KEY+"-url",$("baseUrl").value.trim()); }catch(e){} if(loteVista) pintarQR(loteVista); };
@@ -615,12 +689,47 @@ function mapa(coord){
   if(!m) return esc(coord||"");
   return `<a href="https://www.openstreetmap.org/?mlat=${m[1]}&mlon=${m[2]}#map=15/${m[1]}/${m[2]}" target="_blank" rel="noopener">${esc(coord)} · ver mapa</a>`;
 }
+let abierto = {}, privAbierto = {};
+// Datos privados visibles: en la empresa, los guardados; desde un QR, solo los descifrados con clave.
+const privDe = b => modoPublico ? (privAbierto[b.i]?.priv || null) : (b.privado || null);
+const pideClave = () => modoPublico && rol!=="comprador" && loteVista?.protegido && !abierto[rol];
+async function desbloquear(r, clave){
+  const l = loteVista, k = ROL_CLAVE[r];
+  if(!hayCifrado()) return "Este navegador no permite descifrar (abre la página por https).";
+  // La clave se comprueba con el testigo del lote o, si no viaja, con el primer dato cifrado.
+  try{
+    if(l.acceso){ if(await descifrar(l.acceso[k], clave) !== ACCESO_TXT) return "Clave incorrecta"; }
+    else { const b0 = l.cadena.find(b=>b.cifrado && b.cifrado[k]); if(!b0) return "Este lote no tiene datos para este rol"; await descifrar(b0.cifrado[k], clave); }
+  }catch(e){ return "Clave incorrecta"; }
+  for(const b of l.cadena){
+    if(!b.cifrado || !b.cifrado[k]) continue;
+    try{
+      const {priv, sal} = JSON.parse(await descifrar(b.cifrado[k], clave));
+      privAbierto[b.i] = {priv, ok: await sha256(sal + JSON.stringify(priv)) === b.privHash};
+    }catch(e){ privAbierto[b.i] = {priv:null, ok:false}; }
+  }
+  abierto[r] = true; return "";
+}
+async function intentarClave(){
+  const msg = await desbloquear(rol, $("claveIn").value);
+  if(msg){ $("claveMsg").textContent = msg; $("claveIn").select(); return; }
+  pintarVer();
+}
+$("rolVista").addEventListener("click", e=>{ if(e.target.id==="claveBtn") intentarClave(); });
+$("rolVista").addEventListener("keydown", e=>{ if(e.target.id==="claveIn" && e.key==="Enter") intentarClave(); });
 function pintarRol(l, ok){
   const B = id => l.cadena.find(b=>b.etapa===id);
-  const d = id => (B(id)||{}).datos || {};
+  const d = id => { const b=B(id); return b ? {...b.datos, ...(privDe(b)||{})} : {}; };
   document.querySelectorAll("#roles button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.rol===rol));
   const kgEx = num(d("exportacion").kg);
   $("sacoInfo").innerHTML = saco ? `<div class="saco">Saco ${codigoSaco(esc(l.codigo),saco.s)} · ${saco.s} de ${saco.n}${kgEx?` · ≈ ${(kgEx/saco.n).toFixed(1)} kg`:""} · ${ok?"Cadena verificada ✔":"⚠ Cadena alterada"}</div>` : "";
+  if(pideClave()){
+    const quien = rol==="control" ? "las entidades de control" : "el productor";
+    $("rolVista").innerHTML = `<div class="clave"><p style="margin:0"><b>Vista protegida.</b> Es para ${quien}: incluye el precio pagado, que viaja cifrado en el QR. Ingresa tu clave de acceso.</p>
+      <div class="row"><label for="claveIn" class="hidden">Clave de acceso</label><input id="claveIn" type="password" autocomplete="off" placeholder="Clave de acceso"><button class="btn" id="claveBtn" type="button">Entrar</button></div>
+      <p class="meta" id="claveMsg" style="margin:0"></p></div>`;
+    return;
+  }
   $("rolVista").innerHTML = rol==="control" ? vistaControl(l,ok,B,d) : rol==="productor" ? vistaProductor(l,B,d) : vistaComprador(l,B,d);
 }
 $("roles").addEventListener("click", e=>{
@@ -657,6 +766,11 @@ function vistaControl(l,ok,B,d){
   const serie=[["cosecha",kc],["seco",ks],["comprado",kb],["procesado",kt],["exportado",ke],["recibido",kr]].filter(x=>x[1]!=null).map(x=>`${x[0]} ${x[1]}`).join(" → ");
   add(prob.length?"warn":"ok","Balance de kilos", (prob.length?"Revisar: "+prob.join("; ")+". ":"Sin diferencias fuera de lo normal. ")+serie+" kg.");
   const ex=d("exportacion");
+  const bc = B("compra");
+  if(bc && bc.privHash){
+    const pa = modoPublico ? privAbierto[bc.i] : {ok:true, priv:bc.privado};
+    add(pa?.ok?"ok":"ko","Pago al productor", pa?.ok ? `Precio sellado y verificado: ${pa.priv.precio}.` : "El precio descifrado no coincide con su sello.");
+  }
   const cv = contenedorValido(ex.contenedor);
   const docsOk = ex.dex && ex.contenedor && ex.precinto && cv!==false;
   add(docsOk?"ok":"warn","Documentos de exportación", `DAE: ${ex.dex||"no registrada"} · Contenedor: ${ex.contenedor||"no registrado"}${cv===true?" (dígito ISO 6346 correcto)":cv===false?" (dígito de control ISO 6346 incorrecto)":""} · Precinto: ${ex.precinto||"no registrado"}.`);
