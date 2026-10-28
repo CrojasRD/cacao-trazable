@@ -472,6 +472,7 @@ async function abrirDesdeQR(){
     loteVista = await decodificar(m[1]);
     modoPublico=true;
     $("nav").classList.add("hidden"); $("selVer").classList.add("hidden");
+    document.querySelectorAll("#qrCard .noprint").forEach(el=>el.classList.add("hidden"));
     document.querySelector(".sub").textContent="Estás viendo la trazabilidad verificada de un lote de cacao. Cada etapa está sellada con una huella SHA-256 encadenada a la anterior.";
     ["lotes","registrar","como"].forEach(x=>$("v-"+x).classList.add("hidden")); $("v-ver").classList.remove("hidden");
     pintarVer(); return true;
