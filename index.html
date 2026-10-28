@@ -83,6 +83,41 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .steps span{font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
 .steps span.done{background:var(--leaf);color:var(--bg);border-color:var(--leaf)}
+a{color:var(--cacao-2)}
+.meta{color:var(--muted);font-size:13px}
+.h3{font-size:15px;margin:18px 0 8px;color:var(--cacao-2)}
+.roles{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 16px}
+.roles button{border:1px solid var(--line);background:transparent;color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;font:inherit}
+.roles button[aria-pressed="true"]{background:var(--cacao);color:var(--on-cacao);border-color:var(--cacao)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.kv>div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kv small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.kv b{font-weight:600;word-break:break-word}
+.checks{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.checks li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.ic.ok{background:#3f6b3a}.ic.warn{background:#c98a00}.ic.ko{background:#b3261e}
+.saco{background:var(--accent);color:#1f1408;border-radius:10px;padding:12px 14px;font-weight:600;margin-bottom:14px}
+.ruta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ruta span.p{background:var(--chip);border-radius:999px;padding:3px 10px;font-size:14px}
+.tabla{overflow-x:auto}
+.tabla table{border-collapse:collapse;width:100%;font-size:13px;min-width:520px}
+.tabla th,.tabla td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tabla th{color:var(--muted);font-weight:500}
+.pasos-prod{margin:0;padding-left:20px;display:grid;gap:4px}
+.etiquetas{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;margin-top:14px}
+.etq{background:#fff;color:#2a1a0c;border:2px dashed #5f3712;border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;break-inside:avoid;page-break-inside:avoid}
+.etq .lg{height:36px;display:block}
+.etq h4{margin:8px 0 4px;font-family:Fraunces,serif;font-size:21px;color:#5f3712}
+.etq p{margin:2px 0;font-size:13px}
+.etq .peq{font-size:11px;color:#76604c;margin-top:6px}
+.etq img.q{width:150px;height:150px;image-rendering:pixelated}
+@media print{
+  body.print-etq header, body.print-etq footer, body.print-etq #v-ver > :not(#etqCard), body.print-etq #etqCard .noprint{display:none!important}
+  body.print-etq #etqCard{border:0;padding:0;background:#fff}
+  body.print-etq .etiquetas{grid-template-columns:1fr 1fr}
+  body:not(.print-etq) #etqCard, body:not(.print-etq) #rolCard{display:none!important}
+}
 footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
 @media (prefers-reduced-motion:no-preference){.blk{animation:in .35s ease both}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
 @media print{nav,.noprint{display:none!important}body{background:#fff}}
@@ -118,7 +153,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
       </div>
       <div class="row" style="margin-top:14px">
         <button class="btn" id="btnCrear">Crear lote</button>
-        <button class="btn ghost" id="btnDemo">Cargar lote de ejemplo</button>
+        <button class="btn ghost" id="btnDemo">Cargar lotes de ejemplo</button>
       </div>
     </div>
     <div class="card">
@@ -155,6 +190,17 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
     <div class="card noprint" id="selVer">
       <div class="row"><div style="flex:1;min-width:200px"><label>Lote</label><select id="vLote"></select></div></div>
     </div>
+    <div class="card" id="rolCard">
+      <div id="sacoInfo"></div>
+      <h2>¿Quién está verificando?</h2>
+      <p class="sub" id="rolSub" style="margin:-6px 0 10px">Vista previa de lo que ve cada actor al escanear el QR de un saco.</p>
+      <div class="roles" id="roles">
+        <button type="button" data-rol="comprador" aria-pressed="true">Comprador / importador</button>
+        <button type="button" data-rol="control" aria-pressed="false">Entidad de control</button>
+        <button type="button" data-rol="productor" aria-pressed="false">Productor / proveedor</button>
+      </div>
+      <div id="rolVista"></div>
+    </div>
     <div class="card" id="qrCard">
       <h2 id="vTitulo">—</h2>
       <div class="qrbox">
@@ -168,6 +214,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
               <button class="btn" id="btnPng">Descargar QR (PNG)</button>
               <button class="btn ghost" id="btnPrint">Imprimir etiqueta</button>
               <button class="btn ghost" id="btnCopy">Copiar enlace</button>
+              <button class="btn ghost" id="btnSacos">Etiquetas para sacos</button>
             </div>
             <p class="mono" id="qrInfo"></p>
           </div>
@@ -183,6 +230,18 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
         <button class="btn ghost" id="btnReparar">Deshacer manipulación</button>
       </div>
     </div>
+    <div class="card hidden" id="etqCard">
+      <div class="noprint">
+        <h2>Etiquetas para sacos</h2>
+        <p class="sub" style="margin-top:-6px">Cada saco lleva su propio QR con el número de saco. Imprímelas en papel adhesivo y pégalas en los sacos.</p>
+        <div class="row" style="margin-top:10px">
+          <div style="width:150px"><label for="nSacos">Número de sacos</label><input id="nSacos" type="number" min="1" max="200" value="8"></div>
+          <button class="btn" id="btnImprimirEtq" style="align-self:flex-end">Imprimir etiquetas</button>
+          <button class="btn ghost" id="btnProbarSaco" style="align-self:flex-end">Probar escaneo del saco 1</button>
+        </div>
+      </div>
+      <div class="etiquetas" id="etiquetas"></div>
+    </div>
   </section>
 
   <!-- COMO -->
@@ -192,7 +251,8 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
       <p><b>1. Cada etapa es un "bloque".</b> Cultivo, cosecha, fermentación, secado, compra, transformación, exportación y llegada se guardan como bloques con fecha, responsable, lugar y datos técnicos.</p>
       <p><b>2. Los bloques se encadenan.</b> Cada bloque guarda la huella (hash SHA-256) del bloque anterior y calcula la suya. Si alguien cambia un dato, por ejemplo el origen o los kilos, la huella deja de coincidir y la cadena aparece como <i>alterada</i>.</p>
       <p><b>3. El QR lleva la cadena.</b> El código QR contiene el lote completo comprimido. Quien lo escanea (comprador, importador, consumidor) ve el recorrido y la verificación, sin necesitar cuenta ni servidor.</p>
-      <p><b>4. Alcance.</b> Esta es una demostración académica: la cadena se verifica, pero los datos viven en el navegador de quien los registra. En producción se publicarían las huellas en una blockchain pública (por ejemplo Polygon o Ethereum) o en una red permisionada (Hyperledger Fabric) para que nadie pueda reescribirlas.</p>
+      <p><b>4. Cada actor ve lo que necesita.</b> Al escanear el QR de un saco se elige quién verifica: el <i>comprador o importador</i> ve origen, calidad y ruta; la <i>entidad de control</i> (Agrocalidad, SENAE, autoridades de la UE) ve verificaciones automáticas de integridad, fechas, geolocalización, humedad, balance de kilos y documentos; el <i>productor</i> ve a quién vendió, a qué precio y a dónde llegó su cacao.</p>
+      <p><b>5. Alcance.</b> Esta es una demostración académica: la cadena se verifica, pero los datos viven en el navegador de quien los registra. En producción se publicarían las huellas en una blockchain pública (por ejemplo Polygon o Ethereum) o en una red permisionada (Hyperledger Fabric) para que nadie pueda reescribirlas.</p>
     </div>
   </section>
 </main>
@@ -228,7 +288,7 @@ const ETAPAS = [
   {id:"secado", nombre:"Secado", actor:"Responsable de beneficio", campos:[["dias","Días de secado"],["metodo","Método (solar, marquesina…)"],["humedad","Humedad final (%)"],["kg","Kg de cacao seco"]]},
   {id:"compra", nombre:"Acopio y venta", actor:"Comprador / cooperativa", campos:[["vendedor","Vendedor"],["kg","Kg comprados"],["precio","Precio por kg (USD)"],["calidad","Calidad / prueba de corte"]]},
   {id:"transformacion", nombre:"Transformación", actor:"Planta procesadora", campos:[["proceso","Proceso (tostado, licor, nibs…)"],["producto","Producto resultante"],["kg","Kg resultantes"]]},
-  {id:"exportacion", nombre:"Exportación", actor:"Exportador", campos:[["puerto","Puerto de salida"],["destino","País y ciudad de destino"],["importador","Importador"],["dex","Declaración aduanera (DAE)"],["contenedor","Contenedor / guía"],["kg","Kg exportados"]]},
+  {id:"exportacion", nombre:"Exportación", actor:"Exportador", campos:[["puerto","Puerto de salida"],["destino","País y ciudad de destino"],["importador","Importador"],["dex","Declaración aduanera (DAE)"],["contenedor","Contenedor / guía"],["sacos","Número de sacos"],["kg","Kg exportados"]]},
   {id:"llegada", nombre:"Llegada a destino", actor:"Importador", campos:[["puerto","Puerto de llegada"],["estado","Estado de la carga"],["kg","Kg recibidos"]]}
 ];
 const etapa = id => ETAPAS.find(e=>e.id===id);
@@ -307,7 +367,7 @@ $("nav").addEventListener("click", e=>{ if(e.target.dataset.v) ir(e.target.datas
 
 // ---------- Lotes ----------
 function pintarLotes(){
-  const ls = Object.values(db.lotes);
+  const ls = Object.values(db.lotes).sort((a,b)=>a.codigo.localeCompare(b.codigo));
   $("listaLotes").innerHTML = ls.length ? ls.map(l=>`
     <div class="lote">
       <div><b>${esc(l.codigo)}</b> <span class="chip">${esc(l.variedad)}</span> <span class="chip">${esc(l.kg)} kg</span>
@@ -326,9 +386,9 @@ $("btnCrear").onclick = ()=>{
   db.lotes[codigo]={codigo, variedad:$("nVariedad").value.trim()||"Sin especificar", kg:$("nKg").value||"0", cadena:[]};
   guardar(); $("nCodigo").value=$("nVariedad").value=$("nKg").value=""; pintarLotes();
 };
-$("btnDemo").onclick = async ()=>{
+async function crearLote014(){
   const codigo="MAC-EC-2026-014";
-  if(db.lotes[codigo]){ ir("ver"); $("vLote").value=codigo; return pintarVer(); }
+  if(db.lotes[codigo]) return;
   const l = db.lotes[codigo] = {codigo, variedad:"Nacional fino de aroma (Arriba)", kg:"1500", cadena:[]};
   // Datos de ejemplo (fincas y personas ficticias) para la demostración.
   const demo = [
@@ -338,16 +398,68 @@ $("btnDemo").onclick = async ()=>{
     ["secado","2026-08-16","Centro de acopio comunitario (ejemplo)","","Vinces, Los Ríos",{dias:"6",metodo:"Tendal solar",humedad:"7",kg:"560"},""],
     ["compra","2026-08-28","MA&CAO Exportadora Agrícola","","Guayaquil, Guayas",{vendedor:"Finca El Recreo",kg:"560",precio:"3.10 USD",calidad:"Prueba de corte: 82 % bien fermentado"},"Pago al productor registrado"],
     ["transformacion","2026-09-05","MA&CAO · Planta de selección (ejemplo)","","Guayaquil, Guayas",{proceso:"Limpieza, clasificación y empaque en sacos de yute",producto:"Cacao en grano premium",kg:"550"},""],
-    ["exportacion","2026-09-20","MA&CAO Exportadora Agrícola","","Puerto de Guayaquil",{puerto:"Guayaquil",destino:"Hamburgo, Alemania",importador:"Importador europeo (ejemplo)",dex:"DAE-0000000",contenedor:"MSCU-0000000",kg:"550"},""],
+    ["exportacion","2026-09-20","MA&CAO Exportadora Agrícola","","Puerto de Guayaquil",{puerto:"Guayaquil",destino:"Hamburgo, Alemania",importador:"Importador europeo (ejemplo)",dex:"DAE-0000000",contenedor:"MSCU-0000000",sacos:"8",kg:"550"},""],
     ["llegada","2026-10-14","Importador europeo (ejemplo)","","Hamburgo, Alemania",{puerto:"Hamburgo",estado:"Conforme, sin humedad",kg:"548"},""]
   ];
   for(const [et,fecha,actor,doc,lugar,datos,obs] of demo) await agregarBloque(l,{etapa:et,fecha,actor,doc,lugar,datos,obs});
-  guardar(); ir("ver"); $("vLote").value=codigo; pintarVer();
+}
+$("btnDemo").onclick = async ()=>{
+  await cargarEjemplos(); await crearLote014(); guardar(); ir("lotes");
 };
+
+// ---------- Lotes de ejemplo (fincas, personas y documentos ficticios) ----------
+// etapas: cuántas etapas lleva registradas (8 = completo). Algunos lotes tienen fallas a propósito
+// para mostrar las alertas de la vista de entidad de control.
+const EJEMPLOS = [
+  {n:"001", finca:"Finca La Esperanza", lugar:"Recinto La Unión, Quevedo, Los Ríos", coord:"-1.028, -79.463", alt:"75", ha:"8", variedad:"Nacional fino de aroma (Arriba)", baba:2000, certif:"Orgánico (UE)", destino:"Ámsterdam, Países Bajos", llega:"Ámsterdam", etapas:8, base:"2026-01-12"},
+  {n:"002", finca:"Finca San José", lugar:"Naranjal, Guayas", coord:"-2.672, -79.616", alt:"30", ha:"12", variedad:"CCN-51", baba:3000, certif:"Rainforest Alliance", destino:"Amberes, Bélgica", llega:"Amberes", etapas:8, base:"2026-01-28"},
+  {n:"003", finca:"Finca Los Almendros", lugar:"Calceta, Bolívar, Manabí", coord:"-0.845, -80.163", alt:"60", ha:"5", variedad:"Nacional fino de aroma (Arriba)", baba:1200, certif:"Comercio justo", destino:"Nueva York, Estados Unidos", llega:"Nueva York", etapas:8, base:"2026-02-15"},
+  {n:"004", finca:"Finca Río Verde", lugar:"Quinindé, Esmeraldas", coord:"0.326, -79.468", alt:"90", ha:"10", variedad:"Nacional fino de aroma", baba:1800, certif:"Orgánico en transición", destino:"Hamburgo, Alemania", llega:"Hamburgo", etapas:8, base:"2026-03-03", humedad:"8.2", nota:"Lluvias durante el secado"},
+  {n:"005", finca:"Finca El Paraíso", lugar:"El Guabo, El Oro", coord:"-3.258, -79.835", alt:"15", ha:"7", variedad:"CCN-51", baba:2500, destino:"Barcelona, España", llega:"Barcelona", puerto:"Puerto Bolívar", etapas:8, base:"2026-03-20", perdida:70},
+  {n:"006", finca:"Finca Sumak Kawsay", lugar:"Archidona, Napo", coord:"-0.910, -77.808", alt:"600", ha:"4", variedad:"Nacional fino de aroma (amazónico)", baba:900, certif:"Orgánico; sistema chakra", destino:"Tokio, Japón", llega:"Yokohama", etapas:8, base:"2026-04-08"},
+  {n:"007", finca:"Finca Las Palmas", lugar:"Lago Agrio, Sucumbíos", coord:"0.085, -76.885", alt:"300", ha:"9", variedad:"CCN-51", baba:2200, destino:"Génova, Italia", llega:"Génova", etapas:7, base:"2026-08-25"},
+  {n:"008", finca:"Finca Santa Rosa", lugar:"Vinces, Los Ríos", coord:"", alt:"25", ha:"6", variedad:"Nacional fino de aroma (Arriba)", baba:1500, destino:"Hamburgo, Alemania", llega:"Hamburgo", etapas:8, base:"2026-05-02"},
+  {n:"009", finca:"Finca El Porvenir", lugar:"Milagro, Guayas", coord:"-2.134, -79.594", alt:"12", ha:"6", variedad:"Nacional fino de aroma", baba:1600, certif:"Rainforest Alliance", destino:"Ámsterdam, Países Bajos", llega:"Ámsterdam", etapas:6, base:"2026-09-10"},
+  {n:"010", finca:"Finca La Florida", lugar:"Portoviejo, Manabí", coord:"-1.054, -80.454", alt:"40", ha:"5", variedad:"Nacional fino de aroma (Arriba)", baba:1100, certif:"Comercio justo", destino:"Amberes, Bélgica", llega:"Amberes", etapas:5, base:"2026-10-01"},
+  {n:"011", finca:"Finca Bellavista", lugar:"Balao, Guayas", coord:"-2.912, -79.812", alt:"20", ha:"15", variedad:"CCN-51", baba:4000, destino:"Houston, Estados Unidos", llega:"Houston", etapas:8, base:"2026-05-25"},
+  {n:"012", finca:"Finca El Cisne", lugar:"Valencia, Los Ríos", coord:"-0.952, -79.353", alt:"110", ha:"6", variedad:"Nacional fino de aroma", baba:1400, certif:"Orgánico (UE)", destino:"Rotterdam, Países Bajos", llega:"Rotterdam", etapas:2, base:"2026-10-22"},
+  {n:"013", finca:"Finca Primavera", lugar:"Pichincha, Manabí", coord:"-1.040, -79.817", alt:"95", ha:"7", variedad:"Nacional fino de aroma", baba:1300, destino:"Rotterdam, Países Bajos", llega:"Rotterdam", etapas:8, base:"2026-06-15", fechaMal:true}
+];
+const fechaMas = (base, dias) => { const t=new Date(base+"T12:00:00Z"); t.setUTCDate(t.getUTCDate()+dias); return t.toISOString().slice(0,10); };
+async function crearEjemplo(e){
+  const codigo = "MAC-EC-2026-"+e.n;
+  const l = db.lotes[codigo] = {codigo, variedad:e.variedad, kg:String(e.baba), cadena:[]};
+  const ccn = e.variedad.startsWith("CCN");
+  const seco = Math.round(e.baba*0.37), planta = seco-10, recibido = planta - (e.perdida||2);
+  const sacos = Math.max(1, Math.round(planta/69));
+  const precio = (ccn ? 2.75 : 3.15).toFixed(2);
+  const corte = ccn ? 74 : 80 + (parseInt(e.n)%5);
+  const canton = e.lugar.split(",").slice(-2).join(",").trim();
+  const puerto = e.puerto || "Guayaquil";
+  const imp = `Importadora de ${e.llega} (ejemplo)`;
+  const f = d => fechaMas(e.base, d);
+  const datosCultivo = {finca:e.finca, altitud:e.alt, hectareas:e.ha};
+  if(e.coord) datosCultivo.coord = e.coord;
+  if(e.certif) datosCultivo.certif = e.certif;
+  const pasos = [
+    ["cultivo", f(-160), `Productor de ${e.finca} (ejemplo)`, e.lugar, datosCultivo, "Cultivo agroforestal bajo sombra"],
+    ["cosecha", f(0), e.finca, canton, {kg:String(e.baba), metodo:"Manual, mazorcas maduras"}, ""],
+    ["fermentacion", f(1), "Centro de acopio comunitario (ejemplo)", canton, {dias:ccn?"4":"5", cajon:"Cajones de madera en escalera", temp:"46"}, "Volteo cada 48 h"],
+    ["secado", f(e.fechaMal ? -3 : 6), "Centro de acopio comunitario (ejemplo)", canton, {dias:"6", metodo:"Tendal solar", humedad:e.humedad||"7", kg:String(seco)}, e.nota||""],
+    ["compra", f(14), "MA&CAO Exportadora Agrícola", "Guayaquil, Guayas", {vendedor:e.finca, kg:String(seco), precio:precio+" USD", calidad:`Prueba de corte: ${corte} % bien fermentado`}, "Pago al productor registrado"],
+    ["transformacion", f(22), "MA&CAO · Planta de selección (ejemplo)", "Guayaquil, Guayas", {proceso:"Limpieza, clasificación y empaque en sacos de yute", producto:"Cacao en grano premium", kg:String(planta)}, ""],
+    ["exportacion", f(35), "MA&CAO Exportadora Agrícola", "Puerto de "+puerto, {puerto, destino:e.destino, importador:imp, dex:"DAE-00000"+e.n, contenedor:"MSCU-00000"+e.n, sacos:String(sacos), kg:String(planta)}, ""],
+    ["llegada", f(62), imp, e.destino, {puerto:e.llega, estado:e.perdida?"Sacos con daño por humedad en tránsito":"Conforme, sin humedad", kg:String(recibido)}, ""]
+  ].slice(0, e.etapas);
+  for(const [et,fecha,actor,lugar,datos,obs] of pasos) await agregarBloque(l,{etapa:et,fecha,actor,doc:"",lugar,datos,obs});
+}
+async function cargarEjemplos(){
+  for(const e of EJEMPLOS) if(!db.lotes["MAC-EC-2026-"+e.n]) await crearEjemplo(e);
+}
 
 // ---------- Registrar ----------
 function opcionesLotes(sel){
-  const ls=Object.keys(db.lotes);
+  const ls=Object.keys(db.lotes).sort();
   sel.innerHTML = ls.length ? ls.map(c=>`<option>${esc(c)}</option>`).join("") : `<option value="">(crea un lote primero)</option>`;
 }
 function prepRegistrar(){
@@ -377,7 +489,8 @@ $("btnRegistrar").onclick = async ()=>{
 };
 
 // ---------- Ver / QR ----------
-let loteVista=null, modoPublico=false;
+let loteVista=null, modoPublico=false, rol="comprador", saco=null;
+const num = v => { const x=parseFloat(String(v??"").replace(",",".")); return isNaN(x)?null:x; };
 // El QR lleva los datos de cada bloque, los primeros 8 caracteres de su huella
 // y la huella final completa. Al abrirlo se recalcula toda la cadena y se compara.
 function codificar(l){
@@ -413,12 +526,13 @@ async function pintarVer(){
     loteVista = db.lotes[$("vLote").value] || null;
   }
   const l=loteVista;
-  if(!l){ $("vTitulo").textContent="No hay lotes"; $("timeline").innerHTML=""; $("estado").innerHTML=""; $("qr").innerHTML=""; $("pasos").innerHTML=""; return; }
+  if(!l){ $("rolVista").innerHTML=""; $("sacoInfo").innerHTML=""; $("vTitulo").textContent="No hay lotes"; $("timeline").innerHTML=""; $("estado").innerHTML=""; $("qr").innerHTML=""; $("pasos").innerHTML=""; return; }
   $("vTitulo").textContent = `Lote ${l.codigo} · ${l.variedad}`;
   const {ok,res} = await verificar(l.cadena);
   $("estado").innerHTML = !l.cadena.length ? `<div class="status ok">Lote sin etapas registradas.</div>` :
     ok ? `<div class="status ok">✔ Cadena íntegra: ${l.cadena.length} bloques verificados, ninguna huella fue alterada.</div>`
        : `<div class="status ko">✖ Cadena alterada: a partir del bloque marcado los datos no coinciden con su huella.</div>`;
+  pintarRol(l, ok);
   const hechas=new Set(l.cadena.map(b=>b.etapa));
   $("pasos").innerHTML = ETAPAS.map(e=>`<span class="${hechas.has(e.id)?"done":""}">${e.nombre}</span>`).join("");
   $("timeline").innerHTML = l.cadena.map((b,k)=>{
@@ -432,6 +546,7 @@ async function pintarVer(){
   }).join("");
   pintarQR(l);
   $("btnHack").classList.toggle("hidden", modoPublico); $("btnReparar").classList.toggle("hidden", modoPublico);
+  if(!$("etqCard").classList.contains("hidden")) pintarEtiquetas();
 }
 function pintarQR(l){
   const url = enlace(l);
@@ -465,11 +580,117 @@ $("btnReparar").onclick=()=>{
   guardar(); pintarVer();
 };
 
+// ---------- Vistas por actor ----------
+const kv = pares => '<div class="kv">' + pares.filter(p=>p[1]).map(([k,v])=>`<div><small>${esc(k)}</small><b>${v}</b></div>`).join("") + '</div>';
+function mapa(coord){
+  const m = String(coord||"").match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+  if(!m) return esc(coord||"");
+  return `<a href="https://www.openstreetmap.org/?mlat=${m[1]}&mlon=${m[2]}#map=15/${m[1]}/${m[2]}" target="_blank" rel="noopener">${esc(coord)} · ver mapa</a>`;
+}
+function pintarRol(l, ok){
+  const B = id => l.cadena.find(b=>b.etapa===id);
+  const d = id => (B(id)||{}).datos || {};
+  document.querySelectorAll("#roles button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.rol===rol));
+  const kgEx = num(d("exportacion").kg);
+  $("sacoInfo").innerHTML = saco ? `<div class="saco">Saco ${saco.s} de ${saco.n} · Lote ${esc(l.codigo)}${kgEx?` · ≈ ${(kgEx/saco.n).toFixed(1)} kg`:""} · ${ok?"Cadena verificada ✔":"⚠ Cadena alterada"}</div>` : "";
+  $("rolVista").innerHTML = rol==="control" ? vistaControl(l,ok,B,d) : rol==="productor" ? vistaProductor(l,B,d) : vistaComprador(l,B,d);
+}
+$("roles").addEventListener("click", e=>{
+  const r = e.target.closest("button")?.dataset.rol;
+  if(r && loteVista){ rol = r; pintarVer(); }
+});
+function vistaComprador(l,B,d){
+  const cu=B("cultivo")||{}, c=d("cultivo"), fe=d("fermentacion"), se=d("secado"), co=d("compra"), ex=B("exportacion")||{}, exd=d("exportacion"), ll=d("llegada");
+  const ruta=[cu.lugar, B("compra")?.lugar, exd.puerto&&("Puerto de "+exd.puerto), exd.destino].filter(Boolean);
+  return `<h3 class="h3">Origen</h3>` + kv([["Finca",esc(c.finca)],["Ubicación",esc(cu.lugar)],["Coordenadas de la parcela",c.coord&&mapa(c.coord)],["Altitud",c.altitud&&esc(c.altitud)+" msnm"],["Superficie",c.hectareas&&esc(c.hectareas)+" ha"],["Certificaciones",esc(c.certif)]])
+    + `<h3 class="h3">Calidad</h3>` + kv([["Variedad",esc(l.variedad)],["Fermentación",fe.dias&&esc(fe.dias)+" días"],["Secado",se.metodo&&esc(se.metodo)],["Humedad final",se.humedad&&esc(se.humedad)+" %"],["Prueba de corte",esc(co.calidad)]])
+    + `<h3 class="h3">Ruta</h3><div class="ruta">${ruta.map(x=>`<span class="p">${esc(x)}</span>`).join('<span aria-hidden="true">→</span>')}</div>`
+    + `<h3 class="h3">Exportación</h3>` + kv([["Exportador",esc(ex.actor)],["Fecha de embarque",esc(ex.fecha)],["Kg exportados",exd.kg&&esc(exd.kg)+" kg"],["Sacos",esc(exd.sacos)],["Contenedor",esc(exd.contenedor)],["Recibido en destino",ll.kg&&esc(ll.kg)+" kg · "+esc(ll.estado||"")]]);
+}
+function vistaControl(l,ok,B,d){
+  const checks=[], add=(estado,titulo,detalle)=>checks.push({estado,titulo,detalle});
+  add(ok?"ok":"ko","Integridad de la cadena", ok?`${l.cadena.length} bloques con huellas SHA-256 válidas.`:"Hay bloques cuyos datos no coinciden con su huella: el registro fue modificado.");
+  const faltan=ETAPAS.filter(e=>!B(e.id)).map(e=>e.nombre);
+  add(faltan.length?"warn":"ok","Etapas registradas", faltan.length?`Faltan: ${faltan.join(", ")}.`:`Las ${ETAPAS.length} etapas están registradas.`);
+  const f=l.cadena.map(b=>b.fecha), orden=f.every((x,i)=>!i||!x||!f[i-1]||x>=f[i-1]);
+  add(orden?"ok":"ko","Orden cronológico", orden?"Las fechas avanzan en orden de etapa a etapa.":"Hay etapas con fecha anterior a la etapa previa.");
+  const c=d("cultivo"), geo=/-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?/.test(c.coord||"");
+  add(geo?"ok":"ko","Geolocalización del origen", geo?`Parcela en ${c.coord}, requisito del Reglamento UE 2023/1115 (cero deforestación).`:"Faltan las coordenadas de la parcela, que exige el Reglamento UE 2023/1115.");
+  const h=num(d("secado").humedad);
+  add(h==null?"warn":h<=7?"ok":"ko","Humedad del grano", h==null?"No se registró la humedad final.":`${h} %; la norma NTE INEN 176 admite hasta 7 %.`);
+  const kc=num(d("cosecha").kg), ks=num(d("secado").kg), kb=num(d("compra").kg), kt=num(d("transformacion").kg), ke=num(d("exportacion").kg), kr=num(d("llegada").kg);
+  const prob=[];
+  if(kc&&ks){ const r=ks/kc; if(r<0.3||r>0.45) prob.push(`rendimiento de baba a grano seco de ${(r*100).toFixed(0)} % (lo normal es 30–45 %)`); }
+  if(ks&&kb&&kb>ks) prob.push("se compraron más kg de los que se secaron");
+  if(kb&&kt&&kt>kb) prob.push("la planta reporta más kg de los comprados");
+  if(kt&&ke&&ke>kt) prob.push("se exportaron más kg de los procesados");
+  if(ke&&kr&&Math.abs(ke-kr)/ke>0.01) prob.push(`diferencia de ${(Math.abs(ke-kr)/ke*100).toFixed(1)} % entre lo exportado y lo recibido`);
+  const serie=[["cosecha",kc],["seco",ks],["comprado",kb],["procesado",kt],["exportado",ke],["recibido",kr]].filter(x=>x[1]!=null).map(x=>`${x[0]} ${x[1]}`).join(" → ");
+  add(prob.length?"warn":"ok","Balance de kilos", (prob.length?"Revisar: "+prob.join("; ")+". ":"Sin diferencias fuera de lo normal. ")+serie+" kg.");
+  const ex=d("exportacion");
+  add(ex.dex&&ex.contenedor?"ok":"warn","Documentos de exportación", `DAE: ${ex.dex||"no registrada"} · Contenedor: ${ex.contenedor||"no registrado"}.`);
+  if(saco){
+    const n=num(ex.sacos), bien=n===saco.n && saco.s<=n;
+    add(bien?"ok":"warn","Saco escaneado", n?`Saco ${saco.s} de ${saco.n}; la exportación registra ${n} sacos.`:`Saco ${saco.s} de ${saco.n}; la exportación no registra el número de sacos.`);
+  }
+  const ic={ok:"✔",warn:"!",ko:"✖"}, txt={ok:"Conforme",warn:"Revisar",ko:"No conforme"};
+  const pend=checks.filter(x=>x.estado!=="ok").length;
+  return `<div class="status ${pend?"ko":"ok"}" style="margin-bottom:12px">${pend?`${pend} punto(s) para revisar`:"✔ Todas las verificaciones automáticas están conformes"}</div>
+    <ul class="checks">${checks.map(x=>`<li><span class="ic ${x.estado}" title="${txt[x.estado]}" aria-label="${txt[x.estado]}">${ic[x.estado]}</span><div><b>${esc(x.titulo)}</b><div class="meta">${esc(x.detalle)}</div></div></li>`).join("")}</ul>
+    <h3 class="h3">Responsables por etapa</h3>
+    <div class="tabla"><table><thead><tr><th>Etapa</th><th>Fecha</th><th>Responsable</th><th>Documento</th><th>Lugar</th></tr></thead><tbody>${l.cadena.map(b=>`<tr><td>${esc(etapa(b.etapa).nombre)}</td><td>${esc(b.fecha)}</td><td>${esc(b.actor)}</td><td>${esc(b.doc||"—")}</td><td>${esc(b.lugar)}</td></tr>`).join("")}</tbody></table></div>
+    <p class="mono" style="margin-top:10px">Huella final del lote: ${esc(l.cadena.at(-1)?.hash||"")}</p>`;
+}
+function vistaProductor(l,B,d){
+  const c=d("cultivo"), co=B("compra")||{}, cod=d("compra"), ex=d("exportacion"), ll=B("llegada"), finca=esc(c.finca||"tu finca");
+  const kg=num(cod.kg), p=num(cod.precio);
+  const frase = ll ? `El cacao de <b>${finca}</b> llegó a <b>${esc(ex.destino||ll.lugar)}</b> el ${esc(ll.fecha)}.`
+    : ex.destino ? `El cacao de <b>${finca}</b> va camino a <b>${esc(ex.destino)}</b>.` : `El cacao de <b>${finca}</b> está en proceso.`;
+  return `<p style="margin:0 0 6px;font-size:17px">${frase}</p>`
+    + `<h3 class="h3">Tu venta</h3>` + kv([["Comprador",esc(co.actor)],["Fecha",esc(co.fecha)],["Kg vendidos",kg!=null&&esc(cod.kg)+" kg"],["Precio por kg",esc(cod.precio)],["Total estimado",kg!=null&&p!=null&&(kg*p).toLocaleString("es-EC",{minimumFractionDigits:2,maximumFractionDigits:2})+" USD"],["Calidad reconocida",esc(cod.calidad)]])
+    + `<h3 class="h3">Qué pasó con tu cacao</h3><ol class="pasos-prod">${l.cadena.map(b=>`<li><b>${esc(etapa(b.etapa).nombre)}</b> · ${esc(b.fecha)} · ${esc(b.lugar)}</li>`).join("")}</ol>`;
+}
+
+// ---------- Etiquetas para sacos ----------
+const enlaceSaco = (l,s,n) => enlace(l) + `&s=${s}&n=${n}`;
+function pintarEtiquetas(){
+  const l=loteVista; if(!l) return;
+  const n=Math.max(1, Math.min(200, parseInt($("nSacos").value)||1));
+  const ex=(l.cadena.find(b=>b.etapa==="exportacion")||{}).datos||{}, kgEx=num(ex.kg);
+  const logo=document.querySelector(".logo").src;
+  let html="";
+  for(let s=1;s<=n;s++){
+    const q=qrcode(0,"L"); q.addData(enlaceSaco(l,s,n)); q.make();
+    html += `<div class="etq"><div><img class="lg" src="${logo}" alt="MA&amp;CAO Exportadora Agrícola">
+      <h4>Saco ${s} de ${n}</h4><p><b>Lote:</b> ${esc(l.codigo)}</p><p>${esc(l.variedad)}</p>
+      ${kgEx?`<p><b>Peso aprox.:</b> ${(kgEx/n).toFixed(1)} kg</p>`:""}${ex.destino?`<p><b>Destino:</b> ${esc(ex.destino)}</p>`:""}
+      <p class="peq">Escanee para verificar origen y trazabilidad</p></div>
+      <img class="q" src="${q.createDataURL(4,0)}" alt="QR del saco ${s}"></div>`;
+  }
+  $("etiquetas").innerHTML=html;
+}
+$("btnSacos").onclick=()=>{
+  if(!loteVista) return;
+  const n=num(((loteVista.cadena.find(b=>b.etapa==="exportacion")||{}).datos||{}).sacos);
+  if(n) $("nSacos").value=n;
+  $("etqCard").classList.remove("hidden"); pintarEtiquetas();
+  $("etqCard").scrollIntoView({behavior:"smooth"});
+};
+$("nSacos").oninput=pintarEtiquetas;
+$("btnImprimirEtq").onclick=()=>{ document.body.classList.add("print-etq"); window.print(); };
+addEventListener("afterprint", ()=>document.body.classList.remove("print-etq"));
+$("btnProbarSaco").onclick=()=>window.open(enlaceSaco(loteVista,1,parseInt($("nSacos").value)||1),"_blank","noopener");
+
 // ---------- Modo público: abierto desde un QR ----------
 async function abrirDesdeQR(){
-  const m = location.hash.match(/#d=(.+)$/); if(!m) return false;
+  const m = location.hash.match(/^#d=([^&]+)(.*)$/); if(!m) return false;
   try{
+    const q = new URLSearchParams(m[2].replace(/^&/,""));
+    const s = parseInt(q.get("s")), n = parseInt(q.get("n"));
+    if(s>0 && n>0) saco = {s, n};
+    if(["comprador","control","productor"].includes(q.get("r"))) rol = q.get("r");
     loteVista = await decodificar(m[1]);
+    $("rolSub").textContent = "Elige tu rol para ver la información que te corresponde.";
     modoPublico=true;
     $("nav").classList.add("hidden"); $("selVer").classList.add("hidden");
     document.querySelectorAll("#qrCard .noprint").forEach(el=>el.classList.add("hidden"));
@@ -483,7 +704,7 @@ addEventListener("hashchange", ()=>{ if(location.hash.startsWith("#d=")) locatio
 // Si no hay lotes guardados, se carga el lote de ejemplo completo para que la página nunca se vea vacía.
 abrirDesdeQR().then(ok=>{
   if(ok) return;
-  if(!Object.keys(db.lotes).length) $("btnDemo").click(); else pintarLotes();
+  cargarEjemplos().then(crearLote014).then(()=>{ guardar(); pintarLotes(); });
 });
 </script>
 </body>

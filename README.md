@@ -41,4 +41,8 @@ y escribir esa dirección en el campo "Dirección pública" antes de generar el 
   navegador no tiene lotes guardados, para que la página nunca se vea vacía.
 - 2026-10-27 — Logo MA&CAO, modo claro/oscuro, lote de ejemplo en Ecuador (Vinces → Guayaquil → Hamburgo).
 - 2026-10-27 — Desplegada en Vercel (equipo Ventas); los QR generados fuera de un sitio web apuntan a cacao-trazable.vercel.app.
+- 2026-10-27 — Vistas por actor al escanear (comprador/importador, entidad de control, productor),
+  verificaciones automáticas para control (integridad, fechas, geolocalización UE 2023/1115,
+  humedad NTE INEN 176, balance de kilos, DAE/contenedor), etiquetas de sacos con QR propio
+  (`&s=N&n=TOTAL` en el enlace) y 14 lotes de ejemplo (001–014), algunos con fallas a propósito.
 - Los nombres del lote de ejemplo son ficticios.
