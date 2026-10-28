@@ -477,6 +477,8 @@ async function abrirDesdeQR(){
     pintarVer(); return true;
   }catch(e){ return false; }
 }
+// Si se abre otro enlace de QR con la página ya abierta, se recarga para mostrarlo.
+addEventListener("hashchange", ()=>{ if(location.hash.startsWith("#d=")) location.reload(); });
 // Si no hay lotes guardados, se carga el lote de ejemplo completo para que la página nunca se vea vacía.
 abrirDesdeQR().then(ok=>{
   if(ok) return;
