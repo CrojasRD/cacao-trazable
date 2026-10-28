@@ -3,7 +3,9 @@
 Bitácora del proyecto. Autor: Carlos Alberto Rojas Domínguez.
 
 ## Dirección publicada
-https://crojasrd.github.io/cacao-trazable/ (GitHub Pages, repo CrojasRD/cacao-trazable).
+- Vercel (dominio de pruebas, principal): https://cacao-trazable.vercel.app/ — equipo Ventas; se despliega solo con cada push a `main`.
+- GitHub Pages (respaldo): https://crojasrd.github.io/cacao-trazable/
+- Repositorio: https://github.com/CrojasRD/cacao-trazable
 
 ## Qué es
 App web de un solo archivo (`index.html`) para seguir un lote de cacao desde la finca
@@ -37,4 +39,6 @@ y escribir esa dirección en el campo "Dirección pública" antes de generar el 
   permisionada (Hyperledger Fabric).
 - 2026-10-27 — Publicada en GitHub Pages; el lote de ejemplo se carga solo si el
   navegador no tiene lotes guardados, para que la página nunca se vea vacía.
+- 2026-10-27 — Logo MA&CAO, modo claro/oscuro, lote de ejemplo en Ecuador (Vinces → Guayaquil → Hamburgo).
+- 2026-10-27 — Desplegada en Vercel (equipo Ventas); los QR generados fuera de un sitio web apuntan a cacao-trazable.vercel.app.
 - Los nombres del lote de ejemplo son ficticios.

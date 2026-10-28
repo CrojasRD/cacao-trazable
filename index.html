@@ -163,7 +163,7 @@ footer{color:var(--muted);font-size:12px;text-align:center;padding:20px 16px}
           <p class="sub" style="margin-top:0">Este QR lleva toda la cadena del lote. Al escanearlo se abre la página y se verifica cada huella.</p>
           <div class="noprint">
             <label>Dirección pública de esta página (donde la publiques)</label>
-            <input id="baseUrl" placeholder="https://crojasrd.github.io/cacao-trazable/">
+            <input id="baseUrl" placeholder="https://cacao-trazable.vercel.app/">
             <div class="row" style="margin-top:10px">
               <button class="btn" id="btnPng">Descargar QR (PNG)</button>
               <button class="btn ghost" id="btnPrint">Imprimir etiqueta</button>
@@ -404,7 +404,7 @@ async function decodificar(txt){
 }
 function baseUrl(){
   const v = $("baseUrl").value.trim(); if(v) return v;
-  return /^https?:/.test(location.protocol) ? location.href.split("#")[0] : "https://crojasrd.github.io/cacao-trazable/";
+  return /^https?:/.test(location.protocol) ? location.href.split("#")[0] : "https://cacao-trazable.vercel.app/";
 }
 function enlace(l){ return baseUrl() + "#d=" + codificar(l); }
 async function pintarVer(){
